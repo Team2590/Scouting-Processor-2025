@@ -31,8 +31,23 @@ lastMatchNum = int(getLastMatchNum(scoutingDataRaw))
 
 scoutingData = scoutingDataTo2dArray(scoutingDataRaw, lastMatchNum)
 
-A = np.zeros((17 * lastMatchNum, len(scoutNames)))
-b = np.zeros(17 * lastMatchNum)
+# Remove duplicates from scoutingDataRaw
+unique_scouting_data = []
+seen_combinations = set()
+
+for data in scoutingDataRaw:
+    team_match = (int(data['teamNum']), int(data['matchNum']))
+    if team_match not in seen_combinations:
+        unique_scouting_data.append(data)
+        seen_combinations.add(team_match)
+
+scoutingDataRaw = unique_scouting_data
+
+num_corrections = len(correctionsDataRaw)
+corrections_index = 17 * lastMatchNum # add corrections to the end of the matrix
+
+A = np.zeros((17 * lastMatchNum + 8 * num_corrections, len(scoutNames)))
+b = np.zeros(17 * lastMatchNum + 8 * num_corrections)
 
 allianceAccuracies = []
 
@@ -71,7 +86,7 @@ for matchNum in uniqueMatchNumbers:
     for scoutData in scoutingDataRaw:
         if int(scoutData['matchNum']) == matchNum:
             scoutIndex = scoutNames.index(scoutData['scoutName'])
-            if int(scoutData['teamNum']) in redAllianceTeamNums:
+            if int(scoutData['teamNum']) in redAllianceTeamNums and (red_correction is None or int(scoutData['teamNum']) != int(red_correction['teamNum'])):
                 redScoutAutoCoralL1 += scoutData['autoCoralL1']
                 redScoutAutoCoralL2 += scoutData['autoCoralL2']
                 redScoutAutoCoralL3 += scoutData['autoCoralL3']
@@ -80,7 +95,7 @@ for matchNum in uniqueMatchNumbers:
                 redScoutTeleopCoralL2 += scoutData['teleopCoralL2']
                 redScoutTeleopCoralL3 += scoutData['teleopCoralL3']
                 redScoutTeleopCoralL4 += scoutData['teleopCoralL4']
-            else:
+            elif int(scoutData['teamNum']) in blueAllianceTeamNums and (blue_correction is None or int(scoutData['teamNum']) != int(blue_correction['teamNum'])):
                 blueScoutAutoCoralL1 += scoutData['autoCoralL1']
                 blueScoutAutoCoralL2 += scoutData['autoCoralL2']
                 blueScoutAutoCoralL3 += scoutData['autoCoralL3']
@@ -162,19 +177,39 @@ for matchNum in uniqueMatchNumbers:
     for scoutData in scoutingDataRaw:
         if int(scoutData['matchNum']) == matchNum:
             scoutIndex = scoutNames.index(scoutData['scoutName'])
+            if (red_correction is None or int(scoutData['teamNum']) != int(red_correction['teamNum'])) and (blue_correction is None or int(scoutData['teamNum']) != int(blue_correction['teamNum'])):
+                A[index+16, scoutIndex] = correctZerosScouting(b[index+16], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
 
-            A[index+16, scoutIndex] = correctZerosScouting(b[index+16], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
+                indexOffset = 8 if int(scoutData['teamNum']) in redAllianceTeamNums else 0
 
-            indexOffset = 8 if int(scoutData['teamNum']) in redAllianceTeamNums else 0
+                A[index+indexOffset, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
+                A[index+indexOffset+1, scoutIndex] = correctZerosScouting(b[index+1], scoutData['autoCoralL2'])
+                A[index+indexOffset+2, scoutIndex] = correctZerosScouting(b[index+2], scoutData['autoCoralL3'])
+                A[index+indexOffset+3, scoutIndex] = correctZerosScouting(b[index+3], scoutData['autoCoralL4'])
+                A[index+indexOffset+4, scoutIndex] = correctZerosScouting(b[index+5], scoutData['teleopCoralL1'])
+                A[index+indexOffset+5, scoutIndex] = correctZerosScouting(b[index+6], scoutData['teleopCoralL2'])
+                A[index+indexOffset+6, scoutIndex] = correctZerosScouting(b[index+7], scoutData['teleopCoralL3'])
+                A[index+indexOffset+7, scoutIndex] = correctZerosScouting(b[index+8], scoutData['teleopCoralL4'])
+            else:
+                correction = red_correction if int(scoutData['teamNum']) in redAllianceTeamNums else blue_correction
+                b[corrections_index] = correctZerosScouting(b[corrections_index], correction['autoCoralL1'])
+                b[corrections_index+1] = correctZerosScouting(b[corrections_index+1], correction['autoCoralL2'])
+                b[corrections_index+2] = correctZerosScouting(b[corrections_index+2], correction['autoCoralL3'])
+                b[corrections_index+3] = correctZerosScouting(b[corrections_index+3], correction['autoCoralL4'])
+                b[corrections_index+4] = correctZerosScouting(b[corrections_index+4], correction['teleopCoralL1'])
+                b[corrections_index+5] = correctZerosScouting(b[corrections_index+5], correction['teleopCoralL2'])
+                b[corrections_index+6] = correctZerosScouting(b[corrections_index+6], correction['teleopCoralL3'])
+                b[corrections_index+7] = correctZerosScouting(b[corrections_index+7], correction['teleopCoralL4'])
 
-            A[index+indexOffset, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
-            A[index+indexOffset+1, scoutIndex] = correctZerosScouting(b[index+1], scoutData['autoCoralL2'])
-            A[index+indexOffset+2, scoutIndex] = correctZerosScouting(b[index+2], scoutData['autoCoralL3'])
-            A[index+indexOffset+3, scoutIndex] = correctZerosScouting(b[index+3], scoutData['autoCoralL4'])
-            A[index+indexOffset+4, scoutIndex] = correctZerosScouting(b[index+5], scoutData['teleopCoralL1'])
-            A[index+indexOffset+5, scoutIndex] = correctZerosScouting(b[index+6], scoutData['teleopCoralL2'])
-            A[index+indexOffset+6, scoutIndex] = correctZerosScouting(b[index+7], scoutData['teleopCoralL3'])
-            A[index+indexOffset+7, scoutIndex] = correctZerosScouting(b[index+8], scoutData['teleopCoralL4'])
+                A[corrections_index, scoutIndex] = correctZerosScouting(b[corrections_index], scoutData['autoCoralL1'])
+                A[corrections_index+1, scoutIndex] = correctZerosScouting(b[corrections_index+1], scoutData['autoCoralL2'])
+                A[corrections_index+2, scoutIndex] = correctZerosScouting(b[corrections_index+2], scoutData['autoCoralL3'])
+                A[corrections_index+3, scoutIndex] = correctZerosScouting(b[corrections_index+3], scoutData['autoCoralL4'])
+                A[corrections_index+4, scoutIndex] = correctZerosScouting(b[corrections_index+4], scoutData['teleopCoralL1'])
+                A[corrections_index+5, scoutIndex] = correctZerosScouting(b[corrections_index+5], scoutData['teleopCoralL2'])
+                A[corrections_index+6, scoutIndex] = correctZerosScouting(b[corrections_index+6], scoutData['teleopCoralL3'])
+                A[corrections_index+7, scoutIndex] = correctZerosScouting(b[corrections_index+7], scoutData['teleopCoralL4'])
+                corrections_index += 8
 
 x, residuals, rank, singular_values = np.linalg.lstsq(A, b, rcond=None) 
 coefficients = x.flatten()
@@ -211,9 +246,9 @@ for team_match in team_match_combinations:
     teamNum = team_match[0]
     matchNum = team_match[1]
 
-    data = next((d for d in scoutingDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
+    data = next((d for d in correctionsDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
     if data is None:
-        data = next((d for d in correctionsDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
+        data = next((d for d in scoutingDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
 
     redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
     blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
@@ -273,7 +308,7 @@ worst = min(5, len(sortedAllianceAccuracies))
 
 for i in range(worst):
     matchNum = sortedAllianceAccuracies[i]['matchNum']
-    print('Match ' + str(matchNum) + ' alliance ' + sortedAllianceAccuracies[i]['alliance'] + ' has ' + str(sortedAllianceAccuracies[i]['missedGamePieces']) + ' missed game pieces')
+    print('Match ' + str(matchNum) + " " + sortedAllianceAccuracies[i]['alliance'] + ' alliance has ' + str(sortedAllianceAccuracies[i]['missedGamePieces']) + ' missed game pieces')
     scoutingDataForMatch = filter(lambda d: d['matchNum'] == matchNum, scoutingDataRaw)
     names = []
     for data in scoutingDataForMatch: names.append(data['scoutName'])
