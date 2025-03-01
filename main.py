@@ -36,58 +36,68 @@ b = np.zeros(17 * lastMatchNum)
 
 allianceAccuracies = []
 
-for data in scoutingData:
-    try: 
-        data[0]
-    except:
-        continue  
+uniqueMatchNumbers = sorted(list(set(int(data[0]['matchNum']) for data in scoutingData if data)))
+for matchNum in uniqueMatchNumbers:
 
-    matchNum = int(data[0]['matchNum'])
     index = (matchNum - 1) * 17
     redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
     blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
-    
-    matchScoutingDataWrapper = MatchScoutingDataWrapper(redAllianceTeamNums, blueAllianceTeamNums, data)
-    blueAllianceAccuracy = round(matchScoutingDataWrapper.getAllianceTotalGamePieces('blue') / tbaWrapper.getAllianceTotalGamePieces(matchNum, 'blue')  * 100, 2)
-    redAllianceAccuracy = round(matchScoutingDataWrapper.getAllianceTotalGamePieces('red') / tbaWrapper.getAllianceTotalGamePieces(matchNum, 'red') * 100, 2)
 
-    allianceAccuracies.append({'red': redAllianceAccuracy, 'blue': blueAllianceAccuracy, 'matchNum': matchNum})
+    for team in redAllianceTeamNums:
+        red_correction = next((item for item in correctionsDataRaw if int(item['teamNum']) == team and int(item['matchNum']) == matchNum), None)
+        if red_correction:
+            break
+    for team in blueAllianceTeamNums:
+        blue_correction = next((item for item in correctionsDataRaw if int(item['teamNum']) == team and int(item['matchNum']) == matchNum), None)
+        if blue_correction:
+            break
 
-    b[index] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L1'))
-    b[index+1] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L2'))
-    b[index+2] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L3'))
-    b[index+3] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L4'))
-    b[index+4] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L1'))
-    b[index+5] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L2'))
-    b[index+6] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L3'))
-    b[index+7] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L4'))
-    
-    b[index+8] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L1'))
-    b[index+9] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L2'))
-    b[index+10] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L3'))
-    b[index+11] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L4'))
-    b[index+12] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L1'))
-    b[index+13] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L2'))
-    b[index+14] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L3'))
-    b[index+15] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L4'))
-    
-    b[index+16] = correctZerosBothAlliances(tbaWrapper.getTotalAlgaeProcessor(matchNum))
-    
-    for scoutData in data:
-        scoutIndex = scoutNames.index(scoutData['scoutName'])
+#    matchScoutingDataWrapper = MatchScoutingDataWrapper(redAllianceTeamNums, blueAllianceTeamNums, data)
+#    blueAllianceAccuracy = round(matchScoutingDataWrapper.getAllianceTotalGamePieces('blue') / tbaWrapper.getAllianceTotalGamePieces(matchNum, 'blue')  * 100, 2)
+#    redAllianceAccuracy = round(matchScoutingDataWrapper.getAllianceTotalGamePieces('red') / tbaWrapper.getAllianceTotalGamePieces(matchNum, 'red') * 100, 2)
 
-        A[index+16, scoutIndex] = correctZerosScouting(b[index+16], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
-        
-        indexOffset = 8 if scoutData['teamNum'] in redAllianceTeamNums else 0
+#    allianceAccuracies.append({'red': redAllianceAccuracy, 'blue': blueAllianceAccuracy, 'matchNum': matchNum})
 
-        A[index+indexOffset, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
-        A[index+indexOffset+1, scoutIndex] = correctZerosScouting(b[index+1], scoutData['autoCoralL2'])
-        A[index+indexOffset+2, scoutIndex] = correctZerosScouting(b[index+2], scoutData['autoCoralL3'])
-        A[index+indexOffset+3, scoutIndex] = correctZerosScouting(b[index+3], scoutData['autoCoralL4'])
-        A[index+indexOffset+4, scoutIndex] = correctZerosScouting(b[index+5], scoutData['teleopCoralL1'])
-        A[index+indexOffset+5, scoutIndex] = correctZerosScouting(b[index+6], scoutData['teleopCoralL2'])
-        A[index+indexOffset+6, scoutIndex] = correctZerosScouting(b[index+7], scoutData['teleopCoralL3'])
-        A[index+indexOffset+7, scoutIndex] = correctZerosScouting(b[index+8], scoutData['teleopCoralL4'])
+    b[index] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L1')) - (blue_correction['autoCoralL1'] if blue_correction else 0)
+    b[index+1] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L2')) - (blue_correction['autoCoralL2'] if blue_correction else 0)
+    b[index+2] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L3')) - (blue_correction['autoCoralL3'] if blue_correction else 0)
+    b[index+3] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L4')) - (blue_correction['autoCoralL4'] if blue_correction else 0)
+    b[index+4] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L1')) - (blue_correction['teleopCoralL1'] if blue_correction else 0)
+    b[index+5] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L2')) - (blue_correction['teleopCoralL2'] if blue_correction else 0)
+    b[index+6] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L3')) - (blue_correction['teleopCoralL3'] if blue_correction else 0)
+    b[index+7] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L4')) - (blue_correction['teleopCoralL4'] if blue_correction else 0)
+    
+    b[index+8] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L1')) - (red_correction['autoCoralL1'] if red_correction else 0)
+    b[index+9] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L2')) - (red_correction['autoCoralL2'] if red_correction else 0)
+    b[index+10] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L3')) - (red_correction['autoCoralL3'] if red_correction else 0)
+    b[index+11] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L4')) - (red_correction['autoCoralL4'] if red_correction else 0)
+    b[index+12] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L1')) - (red_correction['teleopCoralL1'] if red_correction else 0)
+    b[index+13] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L2')) - (red_correction['teleopCoralL2'] if red_correction else 0)
+    b[index+14] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L3')) - (red_correction['teleopCoralL3'] if red_correction else 0)
+    b[index+15] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L4')) - (red_correction['teleopCoralL4'] if red_correction else 0)
+    
+    b[index+16] = (
+        correctZerosBothAlliances(tbaWrapper.getTotalAlgaeProcessor(matchNum))
+        - (red_correction['autoProcessorAlgae'] + red_correction['teleopProcessorAlgae'] if red_correction else 0)
+        - (blue_correction['autoProcessorAlgae'] + blue_correction['teleopProcessorAlgae'] if blue_correction else 0)
+    )
+    
+    for scoutData in scoutingDataRaw:
+        if int(scoutData['matchNum']) == matchNum:
+            scoutIndex = scoutNames.index(scoutData['scoutName'])
+
+            A[index+16, scoutIndex] = correctZerosScouting(b[index+16], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
+
+            indexOffset = 8 if scoutData['teamNum'] in redAllianceTeamNums else 0
+
+            A[index+indexOffset, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
+            A[index+indexOffset+1, scoutIndex] = correctZerosScouting(b[index+1], scoutData['autoCoralL2'])
+            A[index+indexOffset+2, scoutIndex] = correctZerosScouting(b[index+2], scoutData['autoCoralL3'])
+            A[index+indexOffset+3, scoutIndex] = correctZerosScouting(b[index+3], scoutData['autoCoralL4'])
+            A[index+indexOffset+4, scoutIndex] = correctZerosScouting(b[index+5], scoutData['teleopCoralL1'])
+            A[index+indexOffset+5, scoutIndex] = correctZerosScouting(b[index+6], scoutData['teleopCoralL2'])
+            A[index+indexOffset+6, scoutIndex] = correctZerosScouting(b[index+7], scoutData['teleopCoralL3'])
+            A[index+indexOffset+7, scoutIndex] = correctZerosScouting(b[index+8], scoutData['teleopCoralL4'])
 
 x, residuals, rank, singular_values = np.linalg.lstsq(A, b, rcond=None) 
 coefficients = x.flatten()
