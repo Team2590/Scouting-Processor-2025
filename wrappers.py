@@ -46,7 +46,7 @@ class TbaWrapper:
     def getAllianceNetAlgae(self, matchNum: int, alliance: Literal['blue', 'red']):
         return self.getAllianceScoreBreakdown(matchNum, alliance)['netAlgaeCount']
     
-    def getAllianceTotalGamePieces(self, matchNum, alliance): 
+    def getAllianceTotalGamePieces(self, matchNum, alliance: Literal['blue', 'red']): 
         total = 0
         total += (self.getAllianceReefForLevel(matchNum, alliance, 'auto', 'L1'))
         total += (self.getAllianceReefForLevel(matchNum, alliance, 'auto', 'L2'))
@@ -73,3 +73,31 @@ class MatchScoutingDataWrapper:
         self.redAllianceData = filter(lambda d: d['teamNum'] in redAllianceTeamNums, data)
         self.blueAllianceData = filter(lambda d: d['teamNum'] in blueAllianceTeamNums, data)
         
+    def getAllianceTotalGamePieces(self, alliance: Literal['blue', 'red']):
+        total = 0
+
+        if alliance == 'red':
+            for data in self.redAllianceData: 
+                total += data['autoCoralL1']
+                total += data['autoCoralL2']
+                total += data['autoCoralL3']
+                total += data['autoCoralL4']
+                total += data['autoNetAlgae'] + data['teleopNetAlgae']
+                total += data['teleopCoralL1']
+                total += data['teleopCoralL2']
+                total += data['teleopCoralL3']
+                total += data['teleopCoralL4']
+
+        else:
+            for data in self.blueAllianceData:
+                total += data['autoCoralL1']
+                total += data['autoCoralL2']
+                total += data['autoCoralL3']
+                total += data['autoCoralL4']
+                total += data['autoNetAlgae'] + data['teleopNetAlgae']
+                total += data['teleopCoralL1']
+                total += data['teleopCoralL2']
+                total += data['teleopCoralL3']
+                total += data['teleopCoralL4']
+
+        return total
