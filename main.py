@@ -52,11 +52,88 @@ for matchNum in uniqueMatchNumbers:
         if blue_correction:
             break
 
-#    matchScoutingDataWrapper = MatchScoutingDataWrapper(redAllianceTeamNums, blueAllianceTeamNums, data)
-#    blueAllianceAccuracy = round(matchScoutingDataWrapper.getAllianceTotalGamePieces('blue') / tbaWrapper.getAllianceTotalGamePieces(matchNum, 'blue')  * 100, 2)
-#    redAllianceAccuracy = round(matchScoutingDataWrapper.getAllianceTotalGamePieces('red') / tbaWrapper.getAllianceTotalGamePieces(matchNum, 'red') * 100, 2)
+    blueScoutAutoCoralL1 = 0
+    blueScoutAutoCoralL2 = 0
+    blueScoutAutoCoralL3 = 0
+    blueScoutAutoCoralL4 = 0
+    blueScoutTeleopCoralL1 = 0
+    blueScoutTeleopCoralL2 = 0
+    blueScoutTeleopCoralL3 = 0
+    blueScoutTeleopCoralL4 = 0
+    redScoutAutoCoralL1 = 0
+    redScoutAutoCoralL2 = 0
+    redScoutAutoCoralL3 = 0
+    redScoutAutoCoralL4 = 0
+    redScoutTeleopCoralL1 = 0
+    redScoutTeleopCoralL2 = 0
+    redScoutTeleopCoralL3 = 0
+    redScoutTeleopCoralL4 = 0
+    for scoutData in scoutingDataRaw:
+        if int(scoutData['matchNum']) == matchNum:
+            scoutIndex = scoutNames.index(scoutData['scoutName'])
+            if int(scoutData['teamNum']) in redAllianceTeamNums:
+                redScoutAutoCoralL1 += scoutData['autoCoralL1']
+                redScoutAutoCoralL2 += scoutData['autoCoralL2']
+                redScoutAutoCoralL3 += scoutData['autoCoralL3']
+                redScoutAutoCoralL4 += scoutData['autoCoralL4']
+                redScoutTeleopCoralL1 += scoutData['teleopCoralL1']
+                redScoutTeleopCoralL2 += scoutData['teleopCoralL2']
+                redScoutTeleopCoralL3 += scoutData['teleopCoralL3']
+                redScoutTeleopCoralL4 += scoutData['teleopCoralL4']
+            else:
+                blueScoutAutoCoralL1 += scoutData['autoCoralL1']
+                blueScoutAutoCoralL2 += scoutData['autoCoralL2']
+                blueScoutAutoCoralL3 += scoutData['autoCoralL3']
+                blueScoutAutoCoralL4 += scoutData['autoCoralL4']
+                blueScoutTeleopCoralL1 += scoutData['teleopCoralL1']
+                blueScoutTeleopCoralL2 += scoutData['teleopCoralL2']
+                blueScoutTeleopCoralL3 += scoutData['teleopCoralL3']
+                blueScoutTeleopCoralL4 += scoutData['teleopCoralL4']
+    if blue_correction:
+        blueScoutAutoCoralL1 = blue_correction['autoCoralL1']
+        blueScoutAutoCoralL2 = blue_correction['autoCoralL2']
+        blueScoutAutoCoralL3 = blue_correction['autoCoralL3']
+        blueScoutAutoCoralL4 = blue_correction['autoCoralL4']
+        blueScoutTeleopCoralL1 = blue_correction['teleopCoralL1']
+        blueScoutTeleopCoralL2 = blue_correction['teleopCoralL2']
+        blueScoutTeleopCoralL3 = blue_correction['teleopCoralL3']
+        blueScoutTeleopCoralL4 = blue_correction['teleopCoralL4']
+    if red_correction:
+        redScoutAutoCoralL1 = red_correction['autoCoralL1']
+        redScoutAutoCoralL2 = red_correction['autoCoralL2']
+        redScoutAutoCoralL3 = red_correction['autoCoralL3']
+        redScoutAutoCoralL4 = red_correction['autoCoralL4']
+        redScoutTeleopCoralL1 = red_correction['teleopCoralL1']
+        redScoutTeleopCoralL2 = red_correction['teleopCoralL2']
+        redScoutTeleopCoralL3 = red_correction['teleopCoralL3']
+        redScoutTeleopCoralL4 = red_correction['teleopCoralL4']
+    blueAccuracyAutoCoralL1 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L1') - blueScoutAutoCoralL1)
+    blueAccuracyAutoCoralL2 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L2') - blueScoutAutoCoralL2)
+    blueAccuracyAutoCoralL3 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L3') - blueScoutAutoCoralL3)
+    blueAccuracyAutoCoralL4 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L4') - blueScoutAutoCoralL4)
+    blueAccuracyTeleopCoralL1 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L1') - blueScoutTeleopCoralL1)
+    blueAccuracyTeleopCoralL2 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L2') - blueScoutTeleopCoralL2)
+    blueAccuracyTeleopCoralL3 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L3') - blueScoutTeleopCoralL3)
+    blueAccuracyTeleopCoralL4 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L4') - blueScoutTeleopCoralL4)
+    redAccuracyAutoCoralL1 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L1') - redScoutAutoCoralL1)
+    redAccuracyAutoCoralL2 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L2') - redScoutAutoCoralL2)
+    redAccuracyAutoCoralL3 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L3') - redScoutAutoCoralL3)
+    redAccuracyAutoCoralL4 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L4') - redScoutAutoCoralL4)
+    redAccuracyTeleopCoralL1 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L1') - redScoutTeleopCoralL1)
+    redAccuracyTeleopCoralL2 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L2') - redScoutTeleopCoralL2)
+    redAccuracyTeleopCoralL3 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L3') - redScoutTeleopCoralL3)
+    redAccuracyTeleopCoralL4 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L4') - redScoutTeleopCoralL4)
 
-#    allianceAccuracies.append({'red': redAllianceAccuracy, 'blue': blueAllianceAccuracy, 'matchNum': matchNum})
+    allianceAccuracies.append({
+        'matchNum': matchNum,
+        'alliance': 'blue',
+        'missedGamePieces': blueAccuracyAutoCoralL1 + blueAccuracyAutoCoralL2 + blueAccuracyAutoCoralL3 + blueAccuracyAutoCoralL4 + blueAccuracyTeleopCoralL1 + blueAccuracyTeleopCoralL2 + blueAccuracyTeleopCoralL3 + blueAccuracyTeleopCoralL4,
+    })
+    allianceAccuracies.append({
+        'matchNum': matchNum,
+        'alliance': 'red',
+        'missedGamePieces': redAccuracyAutoCoralL1 + redAccuracyAutoCoralL2 + redAccuracyAutoCoralL3 + redAccuracyAutoCoralL4 + redAccuracyTeleopCoralL1 + redAccuracyTeleopCoralL2 + redAccuracyTeleopCoralL3 + redAccuracyTeleopCoralL4,
+    })
 
     b[index] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L1')) - (blue_correction['autoCoralL1'] if blue_correction else 0)
     b[index+1] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L2')) - (blue_correction['autoCoralL2'] if blue_correction else 0)
@@ -190,13 +267,13 @@ for team_match in team_match_combinations:
     combinedData['lostComms'] = data['lostComms']
     exportData.append(combinedData)
 
-sortedAllianceAccuracies = sorted(allianceAccuracies, key=lambda accuracies: accuracies['red'] + accuracies['blue'])
+sortedAllianceAccuracies = sorted(allianceAccuracies, key=lambda x: x["missedGamePieces"], reverse=True)
 
 worst = min(5, len(sortedAllianceAccuracies))
 
 for i in range(worst):
     matchNum = sortedAllianceAccuracies[i]['matchNum']
-    print('Match ' + str(matchNum))
+    print('Match ' + str(matchNum) + ' alliance ' + sortedAllianceAccuracies[i]['alliance'] + ' has ' + str(sortedAllianceAccuracies[i]['missedGamePieces']) + ' missed game pieces')
     scoutingDataForMatch = filter(lambda d: d['matchNum'] == matchNum, scoutingDataRaw)
     names = []
     for data in scoutingDataForMatch: names.append(data['scoutName'])
