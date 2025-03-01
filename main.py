@@ -46,8 +46,8 @@ scoutingDataRaw = unique_scouting_data
 num_corrections = len(correctionsDataRaw)
 corrections_index = 17 * lastMatchNum # add corrections to the end of the matrix
 
-A = np.zeros((17 * lastMatchNum + 8 * num_corrections, len(scoutNames)))
-b = np.zeros(17 * lastMatchNum + 8 * num_corrections)
+A = np.zeros((17 * lastMatchNum + 10 * num_corrections, len(scoutNames)))
+b = np.zeros(17 * lastMatchNum + 10 * num_corrections)
 
 allianceAccuracies = []
 
@@ -200,6 +200,8 @@ for matchNum in uniqueMatchNumbers:
                 b[corrections_index+5] = correctZerosScouting(b[corrections_index+5], correction['teleopCoralL2'])
                 b[corrections_index+6] = correctZerosScouting(b[corrections_index+6], correction['teleopCoralL3'])
                 b[corrections_index+7] = correctZerosScouting(b[corrections_index+7], correction['teleopCoralL4'])
+                b[corrections_index+8] = correctZerosScouting(b[corrections_index+8], correction['autoProcessorAlgae'])
+                b[corrections_index+9] = correctZerosScouting(b[corrections_index+9], correction['teleopProcessorAlgae'])
 
                 A[corrections_index, scoutIndex] = correctZerosScouting(b[corrections_index], scoutData['autoCoralL1'])
                 A[corrections_index+1, scoutIndex] = correctZerosScouting(b[corrections_index+1], scoutData['autoCoralL2'])
@@ -209,7 +211,9 @@ for matchNum in uniqueMatchNumbers:
                 A[corrections_index+5, scoutIndex] = correctZerosScouting(b[corrections_index+5], scoutData['teleopCoralL2'])
                 A[corrections_index+6, scoutIndex] = correctZerosScouting(b[corrections_index+6], scoutData['teleopCoralL3'])
                 A[corrections_index+7, scoutIndex] = correctZerosScouting(b[corrections_index+7], scoutData['teleopCoralL4'])
-                corrections_index += 8
+                A[corrections_index+8, scoutIndex] = correctZerosScouting(b[corrections_index+8], scoutData['autoProcessorAlgae'])
+                A[corrections_index+9, scoutIndex] = correctZerosScouting(b[corrections_index+9], scoutData['teleopProcessorAlgae'])
+                corrections_index += 10
 
 x, residuals, rank, singular_values = np.linalg.lstsq(A, b, rcond=None) 
 coefficients = x.flatten()
