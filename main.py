@@ -4,13 +4,23 @@ from dotenv import load_dotenv # type: ignore
 import numpy as np # type: ignore
 import os
 import json
+import argparse
 
 load_dotenv()
 
-scoutingDataRaw = json.load(open('./inputs/' + input('Enter the file name in the inputs folder: ')))
-exportFileName = input('Enter the file name you want in the outputs folder (add .csv): ')
-compKey = input("Enter the competition key: ")
+# Set up argument parser
+parser = argparse.ArgumentParser(description='Process scouting data.')
+parser.add_argument('--scoutingDataRaw', type=str, help='The file name in the inputs folder')
+parser.add_argument('--exportFileName', type=str, help='The file name you want in the outputs folder (add .csv)')
+parser.add_argument('--compKey', type=str, help='The competition key')
+args = parser.parse_args()
 
+# Use command line arguments if provided, otherwise prompt the user
+scoutingDataRawFile = args.scoutingDataRaw if args.scoutingDataRaw else input('Enter the file name in the inputs folder: ')
+exportFileName = args.exportFileName if args.exportFileName else input('Enter the file name you want in the outputs folder (add .csv): ')
+compKey = args.compKey if args.compKey else input("Enter the competition key: ")
+
+scoutingDataRaw = json.load(open('./inputs/' + scoutingDataRawFile))
 tbaWrapper = TbaWrapper(compKey, os.getenv("TBA_KEY"))
 
 scoutNames = getScoutNames(scoutingDataRaw)
@@ -32,7 +42,7 @@ for data in scoutingData:
     matchNum = int(data[0]['matchNum'])
     index = (matchNum - 1) * 8
     redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
-    blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
+    blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
     
     matchScoutingDataWrapper = MatchScoutingDataWrapper(redAllianceTeamNums, blueAllianceTeamNums, data)
     blueAllianceAccuracy = round(matchScoutingDataWrapper.getAllianceTotalGamePieces('blue') / tbaWrapper.getAllianceTotalGamePieces(matchNum, 'blue')  * 100, 2)
@@ -102,14 +112,15 @@ exportData = []
 
 for data in scoutingDataRaw:
     matchNum = int(data['matchNum'])
+    teamNum = int(data['teamNum'])
     redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
     blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
 
     alliance = ''
-    if data['teamNum'] in redAllianceTeamNums: alliance = 'red'
-    if data['teamNum'] in blueAllianceTeamNums: alliance = 'blue'
+    if teamNum in redAllianceTeamNums: alliance = 'red'
+    if teamNum in blueAllianceTeamNums: alliance = 'blue'
 
-    climbLvl = tbaWrapper.getClimbLevel(matchNum, alliance, data['teamNum'])
+    climbLvl = tbaWrapper.getClimbLevel(matchNum, alliance, teamNum)
 
     parked = 0
     shallow = 0
@@ -119,16 +130,16 @@ for data in scoutingDataRaw:
     if climbLvl == 'DeepCage': deep = 1
 
     driverStationPos = 0
-    if alliance == 'red': driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'red').index(data['teamNum']) + 1
-    else: driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'blue').index(data['teamNum']) + 1
+    if alliance == 'red': driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'red').index(teamNum) + 1
+    else: driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'blue').index(teamNum) + 1
 
     autoMoved = 0
-    if tbaWrapper.getClimbLevel(matchNum, alliance, data['teamNum']): autoMoved = 1
+    if tbaWrapper.getClimbLevel(matchNum, alliance, teamNum): autoMoved = 1
 
     combinedData = {}
     combinedData['id'] = data['id']
     combinedData['matchNum'] = data['matchNum']
-    combinedData['teamNum'] = data['teamNum']
+    combinedData['teamNum'] = teamNum
     combinedData['scoutName'] = data['scoutName']
     combinedData['driverStationPos'] = driverStationPos
     combinedData['startingPos'] = data['startingPos']
@@ -159,8 +170,8 @@ sortedAllianceAccuracies = sorted(allianceAccuracies, key=lambda accuracies: acc
 worst = min(5, len(sortedAllianceAccuracies))
 
 for i in range(worst):
-    matchNum = sortedAllianceAccuracies['matchNum']
-    print('Match ' + matchNum)
+    matchNum = sortedAllianceAccuracies[i]['matchNum']
+    print('Match ' + str(matchNum))
     scoutingDataForMatch = filter(lambda d: d['matchNum'] == matchNum, scoutingDataRaw)
     names = []
     for data in scoutingDataForMatch: names.append(data['scoutName'])
@@ -168,9 +179,6 @@ for i in range(worst):
 
     sortedAccuracies = sorted(filteredAccuracies, key=lambda estimate: estimate['accuracy'])
 
-    accuraciesToPrint = min(2, len(sortedAccuracies))
-
-    for i in range(accuraciesToPrint):
-        print('Likely wrong: ' + sortedAccuracies[i])
+    print('Likely wrong: ' + str(sortedAccuracies[0]))
 
 exportToCSV(exportData, './outputs/' + exportFileName)
