@@ -11,16 +11,19 @@ load_dotenv()
 # Set up argument parser
 parser = argparse.ArgumentParser(description='Process scouting data.')
 parser.add_argument('--scoutingDataRaw', type=str, help='The file name in the inputs folder')
+parser.add_argument('--correctionsDataRaw', type=str, help='The corrections file name in the inputs folder (optional)')
 parser.add_argument('--exportFileName', type=str, help='The file name you want in the outputs folder (add .csv)')
 parser.add_argument('--compKey', type=str, help='The competition key')
 args = parser.parse_args()
 
 # Use command line arguments if provided, otherwise prompt the user
 scoutingDataRawFile = args.scoutingDataRaw if args.scoutingDataRaw else input('Enter the file name in the inputs folder: ')
+correctionsDataRawFile = args.correctionsDataRaw if args.correctionsDataRaw else None
 exportFileName = args.exportFileName if args.exportFileName else input('Enter the file name you want in the outputs folder (add .csv): ')
 compKey = args.compKey if args.compKey else input("Enter the competition key: ")
 
 scoutingDataRaw = json.load(open('./inputs/' + scoutingDataRawFile))
+correctionsDataRaw = json.load(open('./inputs/' + correctionsDataRawFile)) if correctionsDataRawFile else []
 tbaWrapper = TbaWrapper(compKey, os.getenv("TBA_KEY"))
 
 scoutNames = getScoutNames(scoutingDataRaw)
@@ -110,9 +113,24 @@ print('Median scout accuracy:', str(medianAccuracy) + '%')
 
 exportData = []
 
+team_match_combinations = []
+
+for data in correctionsDataRaw:
+    team_match_combinations.append((int(data['teamNum']), int(data['matchNum'])))
+
 for data in scoutingDataRaw:
-    matchNum = int(data['matchNum'])
-    teamNum = int(data['teamNum'])
+    team_match_combinations.append((int(data['teamNum']), int(data['matchNum'])))
+
+team_match_combinations = sorted(list(set(team_match_combinations)), key=lambda x: (x[1], x[0]))
+
+for team_match in team_match_combinations:
+    teamNum = team_match[0]
+    matchNum = team_match[1]
+
+    data = next((d for d in scoutingDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
+    if data is None:
+        data = next((d for d in correctionsDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
+
     redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
     blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
 
