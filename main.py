@@ -1,5 +1,5 @@
 from wrappers import TbaWrapper, MatchScoutingDataWrapper
-from utils import correctZerosBothAlliances, getScoutNames, getLastMatchNum, scoutingDataTo2dArray, correctZerosAlliance, correctZerosScouting
+from utils import correctZerosBothAlliances, getScoutNames, getLastMatchNum, scoutingDataTo2dArray, correctZerosAlliance, correctZerosScouting, exportToCSV
 from dotenv import load_dotenv # type: ignore
 import numpy as np # type: ignore
 import os
@@ -7,8 +7,9 @@ import json
 
 load_dotenv()
 
-scoutingDataRaw = json.load(open('./inputs/' + input('Enter the Enter the file name in the inputs folder: ')))
+scoutingDataRaw = json.load(open('./inputs/' + input('Enter the file name in the inputs folder: ')))
 compKey = input("Enter the competition key: ")
+exportFileName = input('Enter the file name you want in the outputs folder (add .csv): ')
 
 tbaWrapper = TbaWrapper(compKey, os.getenv("TBA_KEY"))
 
@@ -88,3 +89,61 @@ for estimate in scouterAccuraciesEstimated:
 medianAccuracy = np.median(list(abs(estimate['accuracy']) for estimate in scouterAccuraciesEstimated)).round(2)
 
 print('Median scout accuracy:', str(medianAccuracy) + '%')
+
+exportData = []
+
+for data in scoutingDataRaw:
+    matchNum = int(data['matchNum'])
+    redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
+    blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
+
+    alliance = ''
+    if data['teamNum'] in redAllianceTeamNums: alliance = 'red'
+    if data['teamNum'] in blueAllianceTeamNums: alliance = 'blue'
+
+    climbLvl = tbaWrapper.getClimbLevel(matchNum, alliance, data['teamNum'])
+
+    parked = 0
+    shallow = 0
+    deep = 0
+    if climbLvl == 'Parked': parked = 1
+    if climbLvl == 'ShallowCage': shallow = 1
+    if climbLvl == 'DeepCage': deep = 1
+
+    driverStationPos = 0
+    if alliance == 'red': driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'red').index(data['teamNum']) + 1
+    else: driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'blue').index(data['teamNum']) + 1
+
+    autoMoved = 0
+    if tbaWrapper.getClimbLevel(matchNum, alliance, data['teamNum']): autoMoved = 1
+
+    combinedData = {}
+    combinedData['id'] = data['id']
+    combinedData['matchNum'] = data['matchNum']
+    combinedData['teamNum'] = data['teamNum']
+    combinedData['scoutName'] = data['scoutName']
+    combinedData['driverStationPos'] = driverStationPos
+    combinedData['startingPos'] = data['startingPos']
+    combinedData['autoCoralL1'] = data['autoCoralL1']
+    combinedData['autoCoralL2'] = data['autoCoralL2']
+    combinedData['autoCoralL3'] = data['autoCoralL3']
+    combinedData['autoCoralL4'] = data['autoCoralL4']
+    combinedData['autoAlgaeRemovedFromReef'] = data['autoAlgaeRemovedFromReef']
+    combinedData['autoProcessorAlgae'] = data['autoProcessorAlgae']
+    combinedData['autoNetAlgae'] = data['id']
+    combinedData['autoMoved'] = autoMoved
+    combinedData['teleopCoralL1'] = data['teleopCoralL1']
+    combinedData['teleopCoralL2'] = data['teleopCoralL2']
+    combinedData['teleopCoralL3'] = data['teleopCoralL3']
+    combinedData['teleopCoralL4'] = data['teleopCoralL4']
+    combinedData['teleopAlgaeRemovedFromReef'] = data['teleopAlgaeRemovedFromReef']
+    combinedData['teleopProcessorAlgae'] = data['teleopProcessorAlgae']
+    combinedData['teleopNetAlgae'] = data['teleopNetAlgae']
+    combinedData['parkClimb'] = parked
+    combinedData['shallowClimb'] = shallow
+    combinedData['deepClimb'] = deep
+    combinedData['timeTakenToClimb'] = data['timeTakenToClimb']
+    combinedData['lostComms'] = data['lostComms']
+    exportData.append(combinedData)
+
+exportToCSV(exportData, './outputs/' + exportFileName)

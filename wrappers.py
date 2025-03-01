@@ -21,9 +21,9 @@ class TbaWrapper:
         return self.getMatchData(matchNum)['score_breakdown'][alliance]
 
     def getClimbLevel(self, matchNum: int, alliance: Literal['blue', 'red'], teamNum: int):
-        index = self.getAllianceTeamNums(alliance, matchNum).index(teamNum)
+        index = self.getAllianceTeamNums(matchNum, alliance).index(teamNum)
         key = 'endGameRobot' + str(index + 1)
-        return self.getAllianceScoreBreakdown(matchNum, alliance)[alliance][key]
+        return self.getAllianceScoreBreakdown(matchNum, alliance)[key]
     
     def getTotalAlgaeProcessor(self, matchNum: int):
         return self.getAllianceScoreBreakdown(matchNum, 'red')['wallAlgaeCount'] + self.getAllianceScoreBreakdown(matchNum, 'blue')['wallAlgaeCount']
@@ -58,6 +58,12 @@ class TbaWrapper:
         total += (self.getAllianceReefForLevel(matchNum, alliance, 'teleop', 'L3'))
         total += (self.getAllianceReefForLevel(matchNum, alliance, 'teleop', 'L4'))
         return total
+
+    def getAutoMoved(self, matchNum, alliance, teamNum):
+        data = self.getAllianceScoreBreakdown(matchNum, alliance)
+        key = 'autoLineRobot' + str(self.getAllianceTeamNums(matchNum, alliance).index(teamNum) + 1)
+        return data[key]
+
 
 class MatchScoutingDataWrapper:
     def __init__(self, redAllianceTeamNums, blueAllianceTeamNums, data):

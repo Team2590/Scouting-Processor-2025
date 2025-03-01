@@ -1,3 +1,6 @@
+import csv
+
+
 def getScoutNames(data): 
     return list(set(d['scoutName'] for d in data))
 
@@ -27,3 +30,18 @@ def correctZerosBothAlliances(number):
         return number + 6
     else:
         return 0
+    
+def exportToCSV(data, filename):
+    if not data:
+        print("No data to write.")
+        return
+    
+    keys = data[0].keys()  # Get column names from the first dictionary
+    
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=keys)
+        
+        writer.writeheader()  # Write column names
+        writer.writerows(data)  # Write rows
+    
+    print(f"Data successfully written to {filename}")
