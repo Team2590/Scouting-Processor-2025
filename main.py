@@ -149,7 +149,7 @@ for data in scoutingDataRaw:
     combinedData['autoCoralL4'] = data['autoCoralL4']
     combinedData['autoAlgaeRemovedFromReef'] = data['autoAlgaeRemovedFromReef']
     combinedData['autoProcessorAlgae'] = data['autoProcessorAlgae']
-    combinedData['autoNetAlgae'] = data['id']
+    combinedData['autoNetAlgae'] = data['autoNetAlgae']
     combinedData['autoMoved'] = autoMoved
     combinedData['teleopCoralL1'] = data['teleopCoralL1']
     combinedData['teleopCoralL2'] = data['teleopCoralL2']
