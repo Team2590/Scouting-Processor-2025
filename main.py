@@ -1,5 +1,5 @@
 from wrappers import TbaWrapper, MatchScoutingDataWrapper
-from utils import getScoutNames, getLastMatchNum, scoutingDataTo2dArray, correctZerosAlliance, correctZerosScouting
+from utils import correctZerosBothAlliances, getScoutNames, getLastMatchNum, scoutingDataTo2dArray, correctZerosAlliance, correctZerosScouting
 from dotenv import load_dotenv # type: ignore
 import numpy as np # type: ignore
 import os
@@ -17,15 +17,8 @@ lastMatchNum = int(getLastMatchNum(scoutingDataRaw))
 
 scoutingData = scoutingDataTo2dArray(scoutingDataRaw, lastMatchNum)
 
-# print(tbaWrapper.getAllianceReefForLevel(1, 'red', 'teleop', 'L1'))
-# print(tbaWrapper.getAllianceReefForLevel(1, 'red', 'teleop', 'L2'))
-# print(tbaWrapper.getAllianceReefForLevel(1, 'red', 'teleop', 'L3'))
-# print(tbaWrapper.getAllianceReefForLevel(1, 'red', 'teleop', 'L4'))
-# print(tbaWrapper.getAllianceScoreBreakdown(1, 'red')['wallAlgaeCount'])
-
 A = np.zeros((19 * lastMatchNum, len(scoutNames)))
 b = np.zeros(19 * lastMatchNum)
-
 
 for data in scoutingData:
     try: 
@@ -35,7 +28,6 @@ for data in scoutingData:
 
     matchNum = int(data[0]['matchNum'])
     index = (matchNum - 1) * 8
-    # scoutingDataWrapper = MatchScoutingDataWrapper()
     redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
     blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
     
@@ -59,17 +51,15 @@ for data in scoutingData:
     b[index+16] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L3'))
     b[index+17] = correctZerosAlliance(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L4'))
     
-    print('match number', matchNum)
-    print(tbaWrapper.getTotalAlgaeProcessor(matchNum))
-
-    b[index+18] = correctZerosAlliance(tbaWrapper.getTotalAlgaeProcessor(matchNum))
+    b[index+18] = correctZerosBothAlliances(tbaWrapper.getTotalAlgaeProcessor(matchNum))
     
     for scoutData in data:
+        scoutIndex = scoutNames.index(scoutData['scoutName'])
+
         A[index+18, scoutIndex] = correctZerosScouting(b[index], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
         
         indexOffset = 9 if scoutData['teamNum'] in redAllianceTeamNums else 0
 
-        scoutIndex = scoutNames.index(scoutData['scoutName'])   
         A[index, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
         A[index+1, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL2'])
         A[index+2, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL3'])
@@ -83,4 +73,18 @@ for data in scoutingData:
 x, residuals, rank, singular_values = np.linalg.lstsq(A, b, rcond=None) 
 coefficients = x.flatten()
 
-print(coefficients)
+scouterAccuraciesEstimated = []
+
+for i in range(len(scoutNames)): 
+    acc = round(coefficients[i], 4) * 100
+    if acc > 100: acc = -acc + 200
+    scouterAccuraciesEstimated.append({'name': scoutNames[i], 'accuracy': acc})
+
+scouterAccuraciesEstimated.sort(key=lambda x: x['accuracy'])
+
+for estimate in scouterAccuraciesEstimated:
+    print(str(estimate['name']) + ':', str(estimate['accuracy'].round(2)) + '%')
+
+medianAccuracy = np.median(list(abs(estimate['accuracy']) for estimate in scouterAccuraciesEstimated)).round(2)
+
+print('Median scout accuracy:', str(medianAccuracy) + '%')

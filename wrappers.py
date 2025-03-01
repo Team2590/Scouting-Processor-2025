@@ -26,7 +26,7 @@ class TbaWrapper:
         return self.getAllianceScoreBreakdown(matchNum, alliance)[alliance][key]
     
     def getTotalAlgaeProcessor(self, matchNum: int):
-        self.getAllianceScoreBreakdown(matchNum, 'red')['wallAlgaeCount'] + self.getAllianceScoreBreakdown(matchNum, 'blue')['wallAlgaeCount']
+        return self.getAllianceScoreBreakdown(matchNum, 'red')['wallAlgaeCount'] + self.getAllianceScoreBreakdown(matchNum, 'blue')['wallAlgaeCount']
 
     def getAllianceReefForLevel(self, matchNum: int, alliance: Literal['blue', 'red'], period: Literal['auto', 'teleop'], level: Literal['L1', 'L2', 'L3', 'L4']):
         scoreBreakdown = self.getAllianceScoreBreakdown(matchNum, alliance)
@@ -45,6 +45,19 @@ class TbaWrapper:
 
     def getAllianceNetAlgae(self, matchNum: int, alliance: Literal['blue', 'red']):
         return self.getAllianceScoreBreakdown(matchNum, alliance)['netAlgaeCount']
+    
+    def getAllianceTotalGamePieces(self, matchNum, alliance): 
+        total = 0
+        total += (self.getAllianceReefForLevel(matchNum, alliance, 'auto', 'L1'))
+        total += (self.getAllianceReefForLevel(matchNum, alliance, 'auto', 'L2'))
+        total += (self.getAllianceReefForLevel(matchNum, alliance, 'auto', 'L3'))
+        total += (self.getAllianceReefForLevel(matchNum, alliance, 'auto', 'L4'))
+        total += (self.getAllianceNetAlgae(matchNum, alliance))
+        total += (self.getAllianceReefForLevel(matchNum, alliance, 'teleop', 'L1'))
+        total += (self.getAllianceReefForLevel(matchNum, alliance, 'teleop', 'L2'))
+        total += (self.getAllianceReefForLevel(matchNum, alliance, 'teleop', 'L3'))
+        total += (self.getAllianceReefForLevel(matchNum, alliance, 'teleop', 'L4'))
+        return total
 
 class MatchScoutingDataWrapper:
     def __init__(self, redAllianceTeamNums, blueAllianceTeamNums, data):
@@ -53,3 +66,4 @@ class MatchScoutingDataWrapper:
         self.blueAllianceTeamNums = blueAllianceTeamNums
         self.redAllianceData = filter(lambda d: d['teamNum'] in redAllianceTeamNums, data)
         self.blueAllianceData = filter(lambda d: d['teamNum'] in blueAllianceTeamNums, data)
+        
