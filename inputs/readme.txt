@@ -1,0 +1,1 @@
+Folder for inputs in JSON format from Quickscout
