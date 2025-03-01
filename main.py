@@ -56,19 +56,19 @@ for data in scoutingData:
     for scoutData in data:
         scoutIndex = scoutNames.index(scoutData['scoutName'])
 
-        A[index+18, scoutIndex] = correctZerosScouting(b[index], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
+        A[index+18, scoutIndex] = correctZerosScouting(b[index+18], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
         
         indexOffset = 9 if scoutData['teamNum'] in redAllianceTeamNums else 0
 
-        A[index, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
-        A[index+1, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL2'])
-        A[index+2, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL3'])
-        A[index+3, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL4'])
-        A[index+4, scoutIndex] = correctZerosScouting(b[index], scoutData['autoNetAlgae'] + scoutData['teleopNetAlgae'])
-        A[index+5, scoutIndex] = correctZerosScouting(b[index], scoutData['teleopCoralL1'])
-        A[index+6, scoutIndex] = correctZerosScouting(b[index], scoutData['teleopCoralL2'])
-        A[index+7, scoutIndex] = correctZerosScouting(b[index], scoutData['teleopCoralL3'])
-        A[index+8, scoutIndex] = correctZerosScouting(b[index], scoutData['teleopCoralL4'])
+        A[index+indexOffset, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
+        A[index+indexOffset+1, scoutIndex] = correctZerosScouting(b[index+1], scoutData['autoCoralL2'])
+        A[index+indexOffset+2, scoutIndex] = correctZerosScouting(b[index+2], scoutData['autoCoralL3'])
+        A[index+indexOffset+3, scoutIndex] = correctZerosScouting(b[index+3], scoutData['autoCoralL4'])
+        A[index+indexOffset+4, scoutIndex] = correctZerosScouting(b[index+4], scoutData['autoNetAlgae'] + scoutData['teleopNetAlgae'])
+        A[index+indexOffset+5, scoutIndex] = correctZerosScouting(b[index+5], scoutData['teleopCoralL1'])
+        A[index+indexOffset+6, scoutIndex] = correctZerosScouting(b[index+6], scoutData['teleopCoralL2'])
+        A[index+indexOffset+7, scoutIndex] = correctZerosScouting(b[index+7], scoutData['teleopCoralL3'])
+        A[index+indexOffset+8, scoutIndex] = correctZerosScouting(b[index+8], scoutData['teleopCoralL4'])
 
 x, residuals, rank, singular_values = np.linalg.lstsq(A, b, rcond=None) 
 coefficients = x.flatten()
