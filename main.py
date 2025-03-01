@@ -88,7 +88,7 @@ for matchNum in uniqueMatchNumbers:
 
             A[index+16, scoutIndex] = correctZerosScouting(b[index+16], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
 
-            indexOffset = 8 if scoutData['teamNum'] in redAllianceTeamNums else 0
+            indexOffset = 8 if int(scoutData['teamNum']) in redAllianceTeamNums else 0
 
             A[index+indexOffset, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
             A[index+indexOffset+1, scoutIndex] = correctZerosScouting(b[index+1], scoutData['autoCoralL2'])
