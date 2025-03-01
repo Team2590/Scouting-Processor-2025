@@ -43,7 +43,7 @@ for data in scoutingData:
         continue  
 
     matchNum = int(data[0]['matchNum'])
-    index = (matchNum - 1) * 8
+    index = (matchNum - 1) * 17
     redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
     blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
     
@@ -78,7 +78,7 @@ for data in scoutingData:
 
         A[index+16, scoutIndex] = correctZerosScouting(b[index+16], scoutData['autoProcessorAlgae'] + scoutData['teleopProcessorAlgae'])
         
-        indexOffset = 9 if scoutData['teamNum'] in redAllianceTeamNums else 0
+        indexOffset = 8 if scoutData['teamNum'] in redAllianceTeamNums else 0
 
         A[index+indexOffset, scoutIndex] = correctZerosScouting(b[index], scoutData['autoCoralL1'])
         A[index+indexOffset+1, scoutIndex] = correctZerosScouting(b[index+1], scoutData['autoCoralL2'])
