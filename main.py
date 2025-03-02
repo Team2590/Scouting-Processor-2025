@@ -53,6 +53,11 @@ b = np.zeros(2 * lastMatchNum + num_corrections)
 allianceAccuracies = []
 
 uniqueMatchNumbers = sorted(list(set(int(data[0]['matchNum']) for data in scoutingData if data)))
+
+# Initialize a dictionary to count the number of matches per scout
+scoutGamePieceCounts = {scout: 0 for scout in scoutNames}
+
+# Todo, something to lower accuracy of a specific scout if they report more than what was scored for the whole alliance
 for matchNum in uniqueMatchNumbers:
 
     index = (matchNum - 1) * 2
@@ -89,6 +94,7 @@ for matchNum in uniqueMatchNumbers:
     for scoutData in scoutingDataRaw:
         if int(scoutData['matchNum']) == matchNum:
             scoutIndex = scoutNames.index(scoutData['scoutName'])
+            scoutGamePieceCounts[scoutData['scoutName']] += scoutData['autoCoralL1'] + scoutData['autoCoralL2'] + scoutData['autoCoralL3'] + scoutData['autoCoralL4'] + scoutData['teleopCoralL1'] + scoutData['teleopCoralL2'] + scoutData['teleopCoralL3'] + scoutData['teleopCoralL4'] + scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
             if int(scoutData['teamNum']) in redAllianceTeamNums and (red_correction is None or int(scoutData['teamNum']) != int(red_correction['teamNum'])):
                 redScoutAutoCoralL1 += scoutData['autoCoralL1']
                 redScoutAutoCoralL2 += scoutData['autoCoralL2']
@@ -98,7 +104,7 @@ for matchNum in uniqueMatchNumbers:
                 redScoutTeleopCoralL2 += scoutData['teleopCoralL2']
                 redScoutTeleopCoralL3 += scoutData['teleopCoralL3']
                 redScoutTeleopCoralL4 += scoutData['teleopCoralL4']
-                redScoutProcessorAlgae += scoutData['teleopProcessorAlgae']
+                redScoutProcessorAlgae += scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
             elif int(scoutData['teamNum']) in blueAllianceTeamNums and (blue_correction is None or int(scoutData['teamNum']) != int(blue_correction['teamNum'])):
                 blueScoutAutoCoralL1 += scoutData['autoCoralL1']
                 blueScoutAutoCoralL2 += scoutData['autoCoralL2']
@@ -108,7 +114,7 @@ for matchNum in uniqueMatchNumbers:
                 blueScoutTeleopCoralL2 += scoutData['teleopCoralL2']
                 blueScoutTeleopCoralL3 += scoutData['teleopCoralL3']
                 blueScoutTeleopCoralL4 += scoutData['teleopCoralL4']
-                blueScoutProcessorAlgae += scoutData['teleopProcessorAlgae']
+                blueScoutProcessorAlgae += scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
     if blue_correction:
         blueScoutAutoCoralL1 += blue_correction['autoCoralL1']
         blueScoutAutoCoralL2 += blue_correction['autoCoralL2']
@@ -170,6 +176,8 @@ for matchNum in uniqueMatchNumbers:
     for scoutData in scoutingDataRaw:
         if int(scoutData['matchNum']) == matchNum:
             scoutIndex = scoutNames.index(scoutData['scoutName'])
+            totalGamePieces = totalRedGamePieces if int(scoutData['teamNum']) in redAllianceTeamNums else totalBlueGamePieces
+
             if (red_correction is None or int(scoutData['teamNum']) != int(red_correction['teamNum'])) and (blue_correction is None or int(scoutData['teamNum']) != int(blue_correction['teamNum'])):
 
                 indexOffset = 1 if int(scoutData['teamNum']) in redAllianceTeamNums else 0
@@ -177,7 +185,6 @@ for matchNum in uniqueMatchNumbers:
                 A[index+indexOffset, scoutIndex] = 1
             elif (red_correction and int(scoutData['teamNum']) == int(red_correction['teamNum'])) or (blue_correction and int(scoutData['teamNum']) == int(blue_correction['teamNum'])):
                 correction = red_correction if int(scoutData['teamNum']) in redAllianceTeamNums else blue_correction
-                totalGamePieces = totalRedGamePieces if int(scoutData['teamNum']) in redAllianceTeamNums else totalBlueGamePieces
 
                 b[corrections_index] += abs(scoutData['autoCoralL1'] - correction['autoCoralL1']) / totalGamePieces
                 b[corrections_index] += abs(scoutData['autoCoralL2'] - correction['autoCoralL2']) / totalGamePieces
@@ -202,12 +209,12 @@ scouterAccuraciesEstimated = []
 
 for i in range(len(scoutNames)): 
     acc = 100 - round(coefficients[i], 4) * 100
-    scouterAccuraciesEstimated.append({'name': scoutNames[i], 'accuracy': acc})
+    scouterAccuraciesEstimated.append({'name': scoutNames[i], 'accuracy': acc, 'gamePieceCount': scoutGamePieceCounts[scoutNames[i]]})
 
-scouterAccuraciesEstimated.sort(key=lambda x: x['accuracy'])
+scouterAccuraciesEstimated.sort(key=lambda x: (x['accuracy'], x['gamePieceCount']))
 
 for estimate in scouterAccuraciesEstimated:
-    print(str(estimate['name']) + ':', str(round(estimate['accuracy'], 2)) + '%')
+    print(str(estimate['name']) + ':', str(round(estimate['accuracy'], 2)) + '%', 'with ' + str(estimate['gamePieceCount']) + ' game pieces')
 
 medianAccuracy = np.median(list(abs(estimate['accuracy']) for estimate in scouterAccuraciesEstimated)).round(2)
 
