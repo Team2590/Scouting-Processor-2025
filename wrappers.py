@@ -43,6 +43,9 @@ class TbaWrapper:
 
         return sum(scoreBreakdown[periodKey][tbaLevel].values())
 
+    def getAllianceProcessorAlgae(self, matchNum: int, alliance: Literal['blue', 'red']):
+        return self.getAllianceScoreBreakdown(matchNum, alliance)['wallAlgaeCount']
+
     def getAllianceNetAlgae(self, matchNum: int, alliance: Literal['blue', 'red']):
         return self.getAllianceScoreBreakdown(matchNum, alliance)['netAlgaeCount']
     
