@@ -44,6 +44,93 @@ for data in scoutingDataRaw:
 
 scoutingDataRaw = unique_scouting_data
 
+exportData = []
+
+team_match_combinations = []
+
+for data in correctionsDataRaw:
+    team_match_combinations.append((int(data['teamNum']), int(data['matchNum'])))
+
+for data in scoutingDataRaw:
+    team_match_combinations.append((int(data['teamNum']), int(data['matchNum'])))
+
+team_match_combinations = sorted(list(set(team_match_combinations)), key=lambda x: (x[1], x[0]))
+
+for team_match in team_match_combinations:
+    teamNum = team_match[0]
+    matchNum = team_match[1]
+
+    data = next((d for d in correctionsDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
+    if data is None:
+        data = next((d for d in scoutingDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
+
+    redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
+    blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
+
+    alliance = ''
+    if teamNum in redAllianceTeamNums: alliance = 'red'
+    if teamNum in blueAllianceTeamNums: alliance = 'blue'
+
+    climbLvl = tbaWrapper.getClimbLevel(matchNum, alliance, teamNum)
+
+    parked = 0
+    shallow = 0
+    deep = 0
+    if climbLvl == 'Parked': parked = 1
+    if climbLvl == 'ShallowCage': shallow = 1
+    if climbLvl == 'DeepCage': deep = 1
+
+    driverStationPos = 0
+    if alliance == 'red': driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'red').index(teamNum) + 1
+    else: driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'blue').index(teamNum) + 1
+
+    autoMoved = 0
+    if tbaWrapper.getClimbLevel(matchNum, alliance, teamNum): autoMoved = 1
+
+    combinedData = {}
+    combinedData['id'] = data['id']
+    combinedData['matchNum'] = data['matchNum']
+    combinedData['teamNum'] = teamNum
+    combinedData['scoutName'] = data['scoutName']
+    combinedData['driverStationPos'] = driverStationPos
+    combinedData['startingPos'] = data['startingPos']
+    combinedData['autoCoralL1'] = data['autoCoralL1']
+    combinedData['autoCoralL2'] = data['autoCoralL2']
+    combinedData['autoCoralL3'] = data['autoCoralL3']
+    combinedData['autoCoralL4'] = data['autoCoralL4']
+    combinedData['autoAlgaeRemovedFromReef'] = data['autoAlgaeRemovedFromReef']
+    combinedData['autoProcessorAlgae'] = data['autoProcessorAlgae']
+    combinedData['autoNetAlgae'] = data['autoNetAlgae']
+    combinedData['autoMoved'] = autoMoved
+    combinedData['teleopCoralL1'] = data['teleopCoralL1']
+    combinedData['teleopCoralL2'] = data['teleopCoralL2']
+    combinedData['teleopCoralL3'] = data['teleopCoralL3']
+    combinedData['teleopCoralL4'] = data['teleopCoralL4']
+    combinedData['teleopAlgaeRemovedFromReef'] = data['teleopAlgaeRemovedFromReef']
+    combinedData['teleopProcessorAlgae'] = data['teleopProcessorAlgae']
+    combinedData['teleopNetAlgae'] = data['teleopNetAlgae']
+    combinedData['parkClimb'] = parked
+    combinedData['shallowClimb'] = shallow
+    combinedData['deepClimb'] = deep
+    combinedData['timeTakenToClimb'] = data['timeTakenToClimb']
+    combinedData['lostComms'] = data['lostComms']
+    exportData.append(combinedData)
+
+teamGamePieceCounts = {}
+
+for data in exportData:
+    teamNum = data['teamNum']
+    totalGamePieces = (data['autoCoralL1'] + data['autoCoralL2'] + data['autoCoralL3'] + data['autoCoralL4'] +
+                       data['teleopCoralL1'] + data['teleopCoralL2'] + data['teleopCoralL3'] + data['teleopCoralL4'] +
+                       data['teleopProcessorAlgae'] + data['autoProcessorAlgae'])
+    if teamNum not in teamGamePieceCounts:
+        teamGamePieceCounts[teamNum] = {'totalGamePieces': 0, 'matches': 0}
+    teamGamePieceCounts[teamNum]['totalGamePieces'] += totalGamePieces
+    teamGamePieceCounts[teamNum]['matches'] += 1
+
+averageGamePiecesPerTeam = {teamNum: counts['totalGamePieces'] / counts['matches'] for teamNum, counts in teamGamePieceCounts.items()}
+
+
 num_corrections = len(correctionsDataRaw)
 corrections_index = 2 * lastMatchNum # add corrections to the end of the matrix
 
@@ -170,8 +257,12 @@ for matchNum in uniqueMatchNumbers:
     totalBlueGamePieces = tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L1') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L2') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L3') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L4') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L1') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L2') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L3') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L4') + tbaWrapper.getAllianceProcessorAlgae(matchNum, 'blue')
     totalRedGamePieces = tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L1') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L2') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L3') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L4') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L1') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L2') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L3') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L4') + tbaWrapper.getAllianceProcessorAlgae(matchNum, 'red')
 
-    b[index] = blueOverallAccuracy / totalBlueGamePieces
-    b[index+1] = redOverallAccuracy / totalRedGamePieces
+
+    blueAllianceAverageGamePieces = sum(averageGamePiecesPerTeam[team] for team in blueAllianceTeamNums)
+    redAllianceAverageGamePieces = sum(averageGamePiecesPerTeam[team] for team in redAllianceTeamNums)
+
+    b[index] = blueOverallAccuracy / totalBlueGamePieces * blueAllianceAverageGamePieces / 3 # Weighted by how many game pieces the alliance would typically score, so more important robots are weighted more
+    b[index+1] = redOverallAccuracy / totalRedGamePieces * redAllianceAverageGamePieces / 3
 
     for scoutData in scoutingDataRaw:
         if int(scoutData['matchNum']) == matchNum:
@@ -182,23 +273,25 @@ for matchNum in uniqueMatchNumbers:
 
                 indexOffset = 1 if int(scoutData['teamNum']) in redAllianceTeamNums else 0
 
-                A[index+indexOffset, scoutIndex] = 1
+                A[index+indexOffset, scoutIndex] = averageGamePiecesPerTeam[int(scoutData["teamNum"])] # Weighted by how many game pieces the robot typically scores, so more important robots are weighted more
             elif (red_correction and int(scoutData['teamNum']) == int(red_correction['teamNum'])) or (blue_correction and int(scoutData['teamNum']) == int(blue_correction['teamNum'])):
                 correction = red_correction if int(scoutData['teamNum']) in redAllianceTeamNums else blue_correction
 
-                b[corrections_index] += abs(scoutData['autoCoralL1'] - correction['autoCoralL1']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['autoCoralL2'] - correction['autoCoralL2']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['autoCoralL3'] - correction['autoCoralL3']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['autoCoralL4'] - correction['autoCoralL4']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['teleopCoralL1'] - correction['teleopCoralL1']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['teleopCoralL2'] - correction['teleopCoralL2']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['teleopCoralL3'] - correction['teleopCoralL3']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['teleopCoralL4'] - correction['teleopCoralL4']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['teleopProcessorAlgae'] - correction['teleopProcessorAlgae']) / totalGamePieces
-                b[corrections_index] += abs(scoutData['autoProcessorAlgae'] - correction['autoProcessorAlgae']) / totalGamePieces
+                b[corrections_index] += abs(scoutData['autoCoralL1'] - correction['autoCoralL1']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['autoCoralL2'] - correction['autoCoralL2']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['autoCoralL3'] - correction['autoCoralL3']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['autoCoralL4'] - correction['autoCoralL4']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['teleopCoralL1'] - correction['teleopCoralL1']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['teleopCoralL2'] - correction['teleopCoralL2']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['teleopCoralL3'] - correction['teleopCoralL3']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['teleopCoralL4'] - correction['teleopCoralL4']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['teleopProcessorAlgae'] - correction['teleopProcessorAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['autoProcessorAlgae'] - correction['autoProcessorAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
 
-                A[corrections_index, scoutIndex] = 1
+                A[corrections_index, scoutIndex] = averageGamePiecesPerTeam[int(scoutData["teamNum"])]
                 corrections_index += 1
+
+
 
 x, residuals = optimize.nnls(A, b) # nnls is the non-negative least squares algorithm
 #x, residuals, rank, singular_values = np.linalg.lstsq(A, b, rcond=None) # lstsq is the least squares algorithm, but it allows negative values
@@ -220,77 +313,9 @@ medianAccuracy = np.median(list(abs(estimate['accuracy']) for estimate in scoute
 
 print('Median scout accuracy:', str(medianAccuracy) + '%')
 
-exportData = []
 
-team_match_combinations = []
 
-for data in correctionsDataRaw:
-    team_match_combinations.append((int(data['teamNum']), int(data['matchNum'])))
 
-for data in scoutingDataRaw:
-    team_match_combinations.append((int(data['teamNum']), int(data['matchNum'])))
-
-team_match_combinations = sorted(list(set(team_match_combinations)), key=lambda x: (x[1], x[0]))
-
-for team_match in team_match_combinations:
-    teamNum = team_match[0]
-    matchNum = team_match[1]
-
-    data = next((d for d in correctionsDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
-    if data is None:
-        data = next((d for d in scoutingDataRaw if int(d['teamNum']) == teamNum and int(d['matchNum']) == matchNum), None)
-
-    redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
-    blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
-
-    alliance = ''
-    if teamNum in redAllianceTeamNums: alliance = 'red'
-    if teamNum in blueAllianceTeamNums: alliance = 'blue'
-
-    climbLvl = tbaWrapper.getClimbLevel(matchNum, alliance, teamNum)
-
-    parked = 0
-    shallow = 0
-    deep = 0
-    if climbLvl == 'Parked': parked = 1
-    if climbLvl == 'ShallowCage': shallow = 1
-    if climbLvl == 'DeepCage': deep = 1
-
-    driverStationPos = 0
-    if alliance == 'red': driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'red').index(teamNum) + 1
-    else: driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'blue').index(teamNum) + 1
-
-    autoMoved = 0
-    if tbaWrapper.getClimbLevel(matchNum, alliance, teamNum): autoMoved = 1
-
-    combinedData = {}
-    combinedData['id'] = data['id']
-    combinedData['matchNum'] = data['matchNum']
-    combinedData['teamNum'] = teamNum
-    combinedData['scoutName'] = data['scoutName']
-    combinedData['driverStationPos'] = driverStationPos
-    combinedData['startingPos'] = data['startingPos']
-    combinedData['autoCoralL1'] = data['autoCoralL1']
-    combinedData['autoCoralL2'] = data['autoCoralL2']
-    combinedData['autoCoralL3'] = data['autoCoralL3']
-    combinedData['autoCoralL4'] = data['autoCoralL4']
-    combinedData['autoAlgaeRemovedFromReef'] = data['autoAlgaeRemovedFromReef']
-    combinedData['autoProcessorAlgae'] = data['autoProcessorAlgae']
-    combinedData['autoNetAlgae'] = data['autoNetAlgae']
-    combinedData['autoMoved'] = autoMoved
-    combinedData['teleopCoralL1'] = data['teleopCoralL1']
-    combinedData['teleopCoralL2'] = data['teleopCoralL2']
-    combinedData['teleopCoralL3'] = data['teleopCoralL3']
-    combinedData['teleopCoralL4'] = data['teleopCoralL4']
-    combinedData['teleopAlgaeRemovedFromReef'] = data['teleopAlgaeRemovedFromReef']
-    combinedData['teleopProcessorAlgae'] = data['teleopProcessorAlgae']
-    combinedData['teleopNetAlgae'] = data['teleopNetAlgae']
-    combinedData['parkClimb'] = parked
-    combinedData['shallowClimb'] = shallow
-    combinedData['deepClimb'] = deep
-    combinedData['timeTakenToClimb'] = data['timeTakenToClimb']
-    combinedData['lostComms'] = data['lostComms']
-    exportData.append(combinedData)
 
 sortedAllianceAccuracies = sorted(allianceAccuracies, key=lambda x: x["missedGamePieces"], reverse=True)
 
