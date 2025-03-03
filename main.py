@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 # Use command line arguments if provided, otherwise prompt the user
 scoutingDataRawFile = args.scoutingDataRaw if args.scoutingDataRaw else input('Enter the file name in the inputs folder: ')
-correctionsDataRawFile = args.correctionsDataRaw if args.correctionsDataRaw else None
+correctionsDataRawFile = args.correctionsDataRaw if args.correctionsDataRaw else input('Enter the corrections file name in the inputs folder: ')
 exportFileName = args.exportFileName if args.exportFileName else input('Enter the file name you want in the outputs folder (add .csv): ')
 compKey = args.compKey if args.compKey else input("Enter the competition key: ")
 
