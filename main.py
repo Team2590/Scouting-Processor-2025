@@ -128,7 +128,7 @@ for data in exportData:
     teamGamePieceCounts[teamNum]['totalGamePieces'] += totalGamePieces
     teamGamePieceCounts[teamNum]['matches'] += 1
 
-averageGamePiecesPerTeam = {teamNum: counts['totalGamePieces'] / counts['matches'] for teamNum, counts in teamGamePieceCounts.items()}
+averageGamePiecesPerTeam = {teamNum: max(counts['totalGamePieces'] / counts['matches'], 1) for teamNum, counts in teamGamePieceCounts.items()}
 
 
 num_corrections = len(correctionsDataRaw)
@@ -301,7 +301,7 @@ coefficients = x.flatten()
 scouterAccuraciesEstimated = []
 
 for i in range(len(scoutNames)): 
-    acc = 100 - round(coefficients[i], 4) * 100
+    acc = 100 - round(coefficients[i], 4) * 100 - 1/scoutGamePieceCounts[scoutNames[i]] # Subtract 1/gamePieceCount to reward scouts who scouted more
     scouterAccuraciesEstimated.append({'name': scoutNames[i], 'accuracy': acc, 'gamePieceCount': scoutGamePieceCounts[scoutNames[i]]})
 
 scouterAccuraciesEstimated.sort(key=lambda x: (x['accuracy'], x['gamePieceCount']))
