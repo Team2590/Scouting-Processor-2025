@@ -15,6 +15,7 @@ parser.add_argument('--scoutingDataRaw', type=str, help='The file name in the in
 parser.add_argument('--correctionsDataRaw', type=str, help='The corrections file name in the inputs folder (optional)')
 parser.add_argument('--exportFileName', type=str, help='The file name you want in the outputs folder (add .csv)')
 parser.add_argument('--compKey', type=str, help='The competition key')
+parser.add_argument('--printAccuracies', type=bool, help='Whether to print the accuracies of each scout')
 args = parser.parse_args()
 
 # Use command line arguments if provided, otherwise prompt the user
@@ -306,8 +307,9 @@ for i in range(len(scoutNames)):
 
 scouterAccuraciesEstimated.sort(key=lambda x: (x['accuracy'], x['gamePieceCount']))
 
-for estimate in scouterAccuraciesEstimated:
-    print(str(estimate['name']) + ':', str(round(estimate['accuracy'], 2)) + '%', 'with ' + str(estimate['gamePieceCount']) + ' game pieces')
+if args.printAccuracies:
+    for estimate in scouterAccuraciesEstimated:
+        print(str(estimate['name']) + ':', str(round(estimate['accuracy'], 2)) + '%', 'with ' + str(estimate['gamePieceCount']) + ' game pieces')
 
 medianAccuracy = np.median(list(abs(estimate['accuracy']) for estimate in scouterAccuraciesEstimated)).round(2)
 
@@ -331,6 +333,6 @@ for i in range(worst):
 
     sortedAccuracies = sorted(filteredAccuracies, key=lambda estimate: estimate['accuracy'])
 
-    print('Likely wrong: ' + str(sortedAccuracies[0]))
+    print('Incorrect data likely from: ' + str(sortedAccuracies[0]['name']))
 
 exportToCSV(exportData, './outputs/' + exportFileName)
