@@ -86,7 +86,7 @@ for team_match in team_match_combinations:
     else: driverStationPos = tbaWrapper.getAllianceTeamNums(matchNum, 'blue').index(teamNum) + 1
 
     autoMoved = 0
-    if tbaWrapper.getClimbLevel(matchNum, alliance, teamNum): autoMoved = 1
+    if tbaWrapper.getAutoMoved(matchNum, alliance, teamNum) == 'Yes': autoMoved = 1
 
     combinedData = {}
     combinedData['id'] = data['id']
