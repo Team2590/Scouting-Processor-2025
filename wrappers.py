@@ -31,17 +31,16 @@ class TbaWrapper:
     def getAllianceReefForLevel(self, matchNum: int, alliance: Literal['blue', 'red'], period: Literal['auto', 'teleop'], level: Literal['L1', 'L2', 'L3', 'L4']):
         scoreBreakdown = self.getAllianceScoreBreakdown(matchNum, alliance)
 
-        periodKey = ''
-        if period == 'teleop': periodKey = 'teleopReef'
-        else: periodKey = 'autoReef'
-
-        tbaLevel = ''
-        if level == 'L1': return scoreBreakdown[periodKey]['trough']
-        if level == 'L2': tbaLevel = 'botRow'
-        if level == 'L3': tbaLevel = 'midRow'
-        if level == 'L4': tbaLevel = 'topRow'
-
-        return sum(scoreBreakdown[periodKey][tbaLevel].values())
+        if period == 'teleop':
+            if level == 'L1': return scoreBreakdown['teleopReef']['trough']
+            if level == 'L2': return sum(scoreBreakdown['teleopReef']['botRow'].values()) - sum(scoreBreakdown['autoReef']['botRow'].values())
+            if level == 'L3': return sum(scoreBreakdown['teleopReef']['midRow'].values()) - sum(scoreBreakdown['autoReef']['midRow'].values())
+            if level == 'L4': return sum(scoreBreakdown['teleopReef']['topRow'].values()) - sum(scoreBreakdown['autoReef']['topRow'].values())
+        else:
+            if level == 'L1': return scoreBreakdown['autoReef']['trough']
+            if level == 'L2': return sum(scoreBreakdown['autoReef']['botRow'].values())
+            if level == 'L3': return sum(scoreBreakdown['autoReef']['midRow'].values())
+            if level == 'L4': return sum(scoreBreakdown['autoReef']['topRow'].values())
 
     def getAllianceProcessorAlgae(self, matchNum: int, alliance: Literal['blue', 'red']):
         return self.getAllianceScoreBreakdown(matchNum, alliance)['wallAlgaeCount']
