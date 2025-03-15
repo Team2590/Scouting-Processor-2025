@@ -338,8 +338,10 @@ worst = min(10, len(sortedAllianceAccuracies))
 
 for i in range(worst):
     matchNum = sortedAllianceAccuracies[i]['matchNum']
-    print('Match ' + str(matchNum) + " " + sortedAllianceAccuracies[i]['alliance'] + ' alliance has ' + str(sortedAllianceAccuracies[i]['missedGamePieces']) + ' missed game pieces')
-    scoutingDataForMatch = list(filter(lambda d: d['matchNum'] == matchNum, scoutingDataRaw))
+    alliance = sortedAllianceAccuracies[i]['alliance']
+    allianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, alliance)
+    print('Match ' + str(matchNum) + " " + alliance + ' alliance has ' + str(sortedAllianceAccuracies[i]['missedGamePieces']) + ' missed game pieces')
+    scoutingDataForMatch = list(filter(lambda d: d['matchNum'] == matchNum and d['teamNum'] in allianceTeamNums, scoutingDataRaw))
     names = []
     for data in scoutingDataForMatch: names.append(data['scoutName'])  
     filteredAccuracies = list(filter(lambda estimate: estimate['name'] in names, scouterAccuraciesEstimated))
