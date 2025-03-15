@@ -326,13 +326,24 @@ worst = min(10, len(sortedAllianceAccuracies))
 for i in range(worst):
     matchNum = sortedAllianceAccuracies[i]['matchNum']
     print('Match ' + str(matchNum) + " " + sortedAllianceAccuracies[i]['alliance'] + ' alliance has ' + str(sortedAllianceAccuracies[i]['missedGamePieces']) + ' missed game pieces')
-    scoutingDataForMatch = filter(lambda d: d['matchNum'] == matchNum, scoutingDataRaw)
+    scoutingDataForMatch = list(filter(lambda d: d['matchNum'] == matchNum, scoutingDataRaw))
     names = []
-    for data in scoutingDataForMatch: names.append(data['scoutName'])
+    for data in scoutingDataForMatch: names.append(data['scoutName'])  
     filteredAccuracies = list(filter(lambda estimate: estimate['name'] in names, scouterAccuraciesEstimated))
 
     sortedAccuracies = sorted(filteredAccuracies, key=lambda estimate: estimate['accuracy'])
 
-    print('Incorrect data likely from: ' + str(sortedAccuracies[0]['name']))
+    redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
+
+    leastAccurate = sortedAccuracies[0]
+
+    teamNum = list(filter(lambda x: x['scoutName'] == leastAccurate['name'], scoutingDataForMatch))[0]['teamNum']
+
+    name = str(sortedAccuracies[0]['name'])
+
+    if (teamNum in redAllianceTeamNums):
+        print('Incorrect data likely from: ' + str(teamNum) + ' on the red alliance scouted by ' + name)
+    else:
+        print('Incorrect data likely from: ' + str(teamNum) + ' on the blue alliance scouted by ' + name)
 
 exportToCSV(exportData, './outputs/' + exportFileName)
