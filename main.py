@@ -302,7 +302,12 @@ coefficients = x.flatten()
 scouterAccuraciesEstimated = []
 
 for i in range(len(scoutNames)): 
-    acc = 100 - round(coefficients[i], 4) * 100 - 1/scoutGamePieceCounts[scoutNames[i]] # Subtract 1/gamePieceCount to reward scouts who scouted more
+    game_piece_count = scoutGamePieceCounts[scoutNames[i]]
+
+    if game_piece_count == 0:
+        acc = 100 - round(coefficients[i], 4) * 100
+    else:
+        acc = 100 - round(coefficients[i], 4) * 100 - 1 / game_piece_count
     scouterAccuraciesEstimated.append({'name': scoutNames[i], 'accuracy': acc, 'gamePieceCount': scoutGamePieceCounts[scoutNames[i]]})
 
 scouterAccuraciesEstimated.sort(key=lambda x: (x['accuracy'], x['gamePieceCount']))
