@@ -316,8 +316,21 @@ medianAccuracy = np.median(list(abs(estimate['accuracy']) for estimate in scoute
 print('Median scout accuracy:', str(medianAccuracy) + '%')
 
 
+# print missing data
+for matchNum in uniqueMatchNumbers:
+    redTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
+    blueTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
 
+    for teamNum in redTeamNums + blueTeamNums:
+        alliance = "red" if teamNum in redTeamNums else "blue"
 
+        inScoutingData = any(entry['matchNum'] == matchNum and entry['teamNum'] == teamNum for entry in scoutingDataRaw)        
+        inCorrectionsData = any(entry['matchNum'] == matchNum and entry['teamNum'] == teamNum for entry in correctionsDataRaw)
+
+        if not (inScoutingData or inCorrectionsData):
+            print(f"Missing data for Match {matchNum}, Team {teamNum} (Alliance: {alliance})")
+
+print() # for formatting
 
 sortedAllianceAccuracies = sorted(allianceAccuracies, key=lambda x: x["missedGamePieces"], reverse=True)
 
@@ -342,8 +355,8 @@ for i in range(worst):
     name = str(sortedAccuracies[0]['name'])
 
     if (teamNum in redAllianceTeamNums):
-        print('Incorrect data likely from: ' + str(teamNum) + ' on the red alliance scouted by ' + name)
+        print('Incorrect data from Match ' + str(matchNum) + ', likely from Team ' + str(teamNum) + ' (Alliance: red) scouted by ' + name)
     else:
-        print('Incorrect data likely from: ' + str(teamNum) + ' on the blue alliance scouted by ' + name)
+        print('Incorrect data from Match ' + str(matchNum) + ', likely from Team ' + str(teamNum) + ' (Alliance: blue) scouted by ' + name)
 
 exportToCSV(exportData, './outputs/' + exportFileName)

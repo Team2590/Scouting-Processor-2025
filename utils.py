@@ -44,4 +44,4 @@ def exportToCSV(data, filename):
         writer.writeheader()  # Write column names
         writer.writerows(data)  # Write rows
     
-    print(f"Data successfully written to {filename}")
+    print(f"\nData successfully written to {filename}")
