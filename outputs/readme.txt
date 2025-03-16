@@ -1,0 +1,1 @@
+Folder for outputs in CSV format for use in the Google Sheets template

@@ -3,7 +3,6 @@
 !.env.example
 __pycache__
 .venv
-/outputs
 !/outputs/readme.txt
-# !./outputs/readme.txt
+/outputs/*
 run.bat
