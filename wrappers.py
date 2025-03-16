@@ -1,5 +1,5 @@
 from typing import List, Literal
-import requests # type: ignore
+import requests
 
 def tbaFetcher(compKey, authKey):
     return requests.get(f"https://www.thebluealliance.com/api/v3/event/{compKey}/matches", headers={'X-TBA-Auth-Key': authKey }).json()
