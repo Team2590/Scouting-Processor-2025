@@ -170,6 +170,7 @@ for matchNum in uniqueMatchNumbers:
     blueScoutTeleopCoralL3 = 0
     blueScoutTeleopCoralL4 = 0
     blueScoutProcessorAlgae = 0
+    blueScoutNetAlgae = 0
     redScoutAutoCoralL1 = 0
     redScoutAutoCoralL2 = 0
     redScoutAutoCoralL3 = 0
@@ -179,6 +180,7 @@ for matchNum in uniqueMatchNumbers:
     redScoutTeleopCoralL3 = 0
     redScoutTeleopCoralL4 = 0
     redScoutProcessorAlgae = 0
+    redScoutNetAlgae = 0
     for scoutData in scoutingDataRaw:
         if int(scoutData['matchNum']) == matchNum:
             scoutIndex = scoutNames.index(scoutData['scoutName'])
@@ -193,6 +195,7 @@ for matchNum in uniqueMatchNumbers:
                 redScoutTeleopCoralL3 += scoutData['teleopCoralL3']
                 redScoutTeleopCoralL4 += scoutData['teleopCoralL4']
                 redScoutProcessorAlgae += scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
+                redScoutNetAlgae += scoutData['teleopNetAlgae'] + scoutData['autoNetAlgae']
             elif int(scoutData['teamNum']) in blueAllianceTeamNums and (blue_correction is None or int(scoutData['teamNum']) != int(blue_correction['teamNum'])):
                 blueScoutAutoCoralL1 += scoutData['autoCoralL1']
                 blueScoutAutoCoralL2 += scoutData['autoCoralL2']
@@ -203,6 +206,7 @@ for matchNum in uniqueMatchNumbers:
                 blueScoutTeleopCoralL3 += scoutData['teleopCoralL3']
                 blueScoutTeleopCoralL4 += scoutData['teleopCoralL4']
                 blueScoutProcessorAlgae += scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
+                blueScoutNetAlgae += scoutData['teleopNetAlgae'] + scoutData['autoNetAlgae']
     if blue_correction:
         blueScoutAutoCoralL1 += blue_correction['autoCoralL1']
         blueScoutAutoCoralL2 += blue_correction['autoCoralL2']
@@ -213,6 +217,7 @@ for matchNum in uniqueMatchNumbers:
         blueScoutTeleopCoralL3 += blue_correction['teleopCoralL3']
         blueScoutTeleopCoralL4 += blue_correction['teleopCoralL4']
         blueScoutProcessorAlgae += blue_correction['teleopProcessorAlgae']
+        blueScoutNetAlgae += blue_correction['teleopNetAlgae'] + blue_correction['autoNetAlgae']
     if red_correction:
         redScoutAutoCoralL1 += red_correction['autoCoralL1']
         redScoutAutoCoralL2 += red_correction['autoCoralL2']
@@ -223,6 +228,7 @@ for matchNum in uniqueMatchNumbers:
         redScoutTeleopCoralL3 += red_correction['teleopCoralL3']
         redScoutTeleopCoralL4 += red_correction['teleopCoralL4']
         redScoutProcessorAlgae += red_correction['teleopProcessorAlgae']
+        redScoutNetAlgae += red_correction['teleopNetAlgae'] + red_correction['autoNetAlgae']
     blueAccuracyAutoCoralL1 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L1') - blueScoutAutoCoralL1)
     blueAccuracyAutoCoralL2 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L2') - blueScoutAutoCoralL2)
     blueAccuracyAutoCoralL3 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L3') - blueScoutAutoCoralL3)
@@ -241,8 +247,23 @@ for matchNum in uniqueMatchNumbers:
     redAccuracyTeleopCoralL3 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L3') - redScoutTeleopCoralL3)
     redAccuracyTeleopCoralL4 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L4') - redScoutTeleopCoralL4)
     redAccuracyProcessorAlgae = abs(tbaWrapper.getAllianceProcessorAlgae(matchNum, 'red') - redScoutProcessorAlgae)
-    blueOverallAccuracy = (blueAccuracyAutoCoralL1 + blueAccuracyAutoCoralL2 + blueAccuracyAutoCoralL3 + blueAccuracyAutoCoralL4 + blueAccuracyTeleopCoralL1 + blueAccuracyTeleopCoralL2 + blueAccuracyTeleopCoralL3 + blueAccuracyTeleopCoralL4 + blueAccuracyProcessorAlgae)
-    redOverallAccuracy = (redAccuracyAutoCoralL1 + redAccuracyAutoCoralL2 + redAccuracyAutoCoralL3 + redAccuracyAutoCoralL4 + redAccuracyTeleopCoralL1 + redAccuracyTeleopCoralL2 + redAccuracyTeleopCoralL3 + redAccuracyTeleopCoralL4 + redAccuracyProcessorAlgae)
+
+    # only count net algae for accuracy if the other alliance didn't score any processor algae
+    if tbaWrapper.getAllianceProcessorAlgae(matchNum, 'blue') == 0:
+        redAccuracyNetAlgae = abs(tbaWrapper.getAllianceNetAlgae(matchNum, 'red') - redScoutNetAlgae)
+        countRedNetAlgae = 1
+    else:
+        redAccuracyNetAlgae = 0
+        countRedNetAlgae = 0
+    if tbaWrapper.getAllianceProcessorAlgae(matchNum, 'red') == 0:
+        blueAccuracyNetAlgae = abs(tbaWrapper.getAllianceNetAlgae(matchNum, 'blue') - blueScoutNetAlgae)
+        countBlueNetAlgae = 1
+    else:
+        blueAccuracyNetAlgae = 0
+        countBlueNetAlgae = 0
+
+    blueOverallAccuracy = (blueAccuracyAutoCoralL1 + blueAccuracyAutoCoralL2 + blueAccuracyAutoCoralL3 + blueAccuracyAutoCoralL4 + blueAccuracyTeleopCoralL1 + blueAccuracyTeleopCoralL2 + blueAccuracyTeleopCoralL3 + blueAccuracyTeleopCoralL4 + blueAccuracyProcessorAlgae + blueAccuracyNetAlgae)
+    redOverallAccuracy = (redAccuracyAutoCoralL1 + redAccuracyAutoCoralL2 + redAccuracyAutoCoralL3 + redAccuracyAutoCoralL4 + redAccuracyTeleopCoralL1 + redAccuracyTeleopCoralL2 + redAccuracyTeleopCoralL3 + redAccuracyTeleopCoralL4 + redAccuracyProcessorAlgae + redAccuracyNetAlgae)
 
     allianceAccuracies.append({
         'matchNum': matchNum,
@@ -258,6 +279,10 @@ for matchNum in uniqueMatchNumbers:
     totalBlueGamePieces = tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L1') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L2') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L3') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L4') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L1') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L2') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L3') + tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'teleop', 'L4') + tbaWrapper.getAllianceProcessorAlgae(matchNum, 'blue')
     totalRedGamePieces = tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L1') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L2') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L3') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'auto', 'L4') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L1') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L2') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L3') + tbaWrapper.getAllianceReefForLevel(matchNum, 'red', 'teleop', 'L4') + tbaWrapper.getAllianceProcessorAlgae(matchNum, 'red')
 
+    if countBlueNetAlgae == 1:
+        totalBlueGamePieces += tbaWrapper.getAllianceNetAlgae(matchNum, 'blue')
+    if countRedNetAlgae == 1:
+        totalRedGamePieces += tbaWrapper.getAllianceNetAlgae(matchNum, 'red')
 
     blueAllianceAverageGamePieces = sum(averageGamePiecesPerTeam[team] for team in blueAllianceTeamNums)
     redAllianceAverageGamePieces = sum(averageGamePiecesPerTeam[team] for team in redAllianceTeamNums)
@@ -288,6 +313,9 @@ for matchNum in uniqueMatchNumbers:
                 b[corrections_index] += abs(scoutData['teleopCoralL4'] - correction['teleopCoralL4']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
                 b[corrections_index] += abs(scoutData['teleopProcessorAlgae'] - correction['teleopProcessorAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
                 b[corrections_index] += abs(scoutData['autoProcessorAlgae'] - correction['autoProcessorAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['autoNetAlgae'] - correction['autoNetAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                b[corrections_index] += abs(scoutData['teleopNetAlgae'] - correction['teleopNetAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+
 
                 A[corrections_index, scoutIndex] = averageGamePiecesPerTeam[int(scoutData["teamNum"])]
                 corrections_index += 1
