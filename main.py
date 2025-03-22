@@ -152,14 +152,14 @@ for matchNum in uniqueMatchNumbers:
     redAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'red')
     blueAllianceTeamNums = tbaWrapper.getAllianceTeamNums(matchNum, 'blue')
 
-    for team in redAllianceTeamNums:
-        red_correction = next((item for item in correctionsDataRaw if int(item['teamNum']) == team and int(item['matchNum']) == matchNum), None)
-        if red_correction:
-            break
-    for team in blueAllianceTeamNums:
-        blue_correction = next((item for item in correctionsDataRaw if int(item['teamNum']) == team and int(item['matchNum']) == matchNum), None)
-        if blue_correction:
-            break
+    red_corrections = {}
+    blue_corrections = {}
+
+    for correction in correctionsDataRaw:
+        if int(correction['matchNum'] == matchNum) and int(correction['teamNum']) in redAllianceTeamNums:
+            red_corrections[int(correction['teamNum'])] = correction
+        elif int(correction['matchNum'] == matchNum) and int(correction['teamNum']) in blueAllianceTeamNums:
+            blue_corrections[int(correction['teamNum'])] = correction
 
     blueScoutAutoCoralL1 = 0
     blueScoutAutoCoralL2 = 0
@@ -185,7 +185,7 @@ for matchNum in uniqueMatchNumbers:
         if int(scoutData['matchNum']) == matchNum:
             scoutIndex = scoutNames.index(scoutData['scoutName'])
             scoutGamePieceCounts[scoutData['scoutName']] += scoutData['autoCoralL1'] + scoutData['autoCoralL2'] + scoutData['autoCoralL3'] + scoutData['autoCoralL4'] + scoutData['teleopCoralL1'] + scoutData['teleopCoralL2'] + scoutData['teleopCoralL3'] + scoutData['teleopCoralL4'] + scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
-            if int(scoutData['teamNum']) in redAllianceTeamNums and (red_correction is None or int(scoutData['teamNum']) != int(red_correction['teamNum'])):
+            if int(scoutData['teamNum']) in redAllianceTeamNums and (red_corrections[int(correction['teamNum'])] is None or int(scoutData['teamNum']) != int(red_corrections[int(correction['teamNum'])]['teamNum'])):
                 redScoutAutoCoralL1 += scoutData['autoCoralL1']
                 redScoutAutoCoralL2 += scoutData['autoCoralL2']
                 redScoutAutoCoralL3 += scoutData['autoCoralL3']
@@ -196,7 +196,7 @@ for matchNum in uniqueMatchNumbers:
                 redScoutTeleopCoralL4 += scoutData['teleopCoralL4']
                 redScoutProcessorAlgae += scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
                 redScoutNetAlgae += scoutData['teleopNetAlgae'] + scoutData['autoNetAlgae']
-            elif int(scoutData['teamNum']) in blueAllianceTeamNums and (blue_correction is None or int(scoutData['teamNum']) != int(blue_correction['teamNum'])):
+            elif int(scoutData['teamNum']) in blueAllianceTeamNums and (blue_corrections[int(correction['teamNum'])] is None or int(scoutData['teamNum']) != int(blue_corrections[int(correction['teamNum'])]['teamNum'])):
                 blueScoutAutoCoralL1 += scoutData['autoCoralL1']
                 blueScoutAutoCoralL2 += scoutData['autoCoralL2']
                 blueScoutAutoCoralL3 += scoutData['autoCoralL3']
@@ -207,28 +207,31 @@ for matchNum in uniqueMatchNumbers:
                 blueScoutTeleopCoralL4 += scoutData['teleopCoralL4']
                 blueScoutProcessorAlgae += scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
                 blueScoutNetAlgae += scoutData['teleopNetAlgae'] + scoutData['autoNetAlgae']
-    if blue_correction:
-        blueScoutAutoCoralL1 += blue_correction['autoCoralL1']
-        blueScoutAutoCoralL2 += blue_correction['autoCoralL2']
-        blueScoutAutoCoralL3 += blue_correction['autoCoralL3']
-        blueScoutAutoCoralL4 += blue_correction['autoCoralL4']
-        blueScoutTeleopCoralL1 += blue_correction['teleopCoralL1']
-        blueScoutTeleopCoralL2 += blue_correction['teleopCoralL2']
-        blueScoutTeleopCoralL3 += blue_correction['teleopCoralL3']
-        blueScoutTeleopCoralL4 += blue_correction['teleopCoralL4']
-        blueScoutProcessorAlgae += blue_correction['teleopProcessorAlgae']
-        blueScoutNetAlgae += blue_correction['teleopNetAlgae'] + blue_correction['autoNetAlgae']
-    if red_correction:
-        redScoutAutoCoralL1 += red_correction['autoCoralL1']
-        redScoutAutoCoralL2 += red_correction['autoCoralL2']
-        redScoutAutoCoralL3 += red_correction['autoCoralL3']
-        redScoutAutoCoralL4 += red_correction['autoCoralL4']
-        redScoutTeleopCoralL1 += red_correction['teleopCoralL1']
-        redScoutTeleopCoralL2 += red_correction['teleopCoralL2']
-        redScoutTeleopCoralL3 += red_correction['teleopCoralL3']
-        redScoutTeleopCoralL4 += red_correction['teleopCoralL4']
-        redScoutProcessorAlgae += red_correction['teleopProcessorAlgae']
-        redScoutNetAlgae += red_correction['teleopNetAlgae'] + red_correction['autoNetAlgae']
+    
+    for correction in blue_corrections:
+        blueScoutAutoCoralL1 += correction['autoCoralL1']
+        blueScoutAutoCoralL2 += correction['autoCoralL2']
+        blueScoutAutoCoralL3 += correction['autoCoralL3']
+        blueScoutAutoCoralL4 += correction['autoCoralL4']
+        blueScoutTeleopCoralL1 += correction['teleopCoralL1']
+        blueScoutTeleopCoralL2 += correction['teleopCoralL2']
+        blueScoutTeleopCoralL3 += correction['teleopCoralL3']
+        blueScoutTeleopCoralL4 += correction['teleopCoralL4']
+        blueScoutProcessorAlgae += correction['teleopProcessorAlgae']
+        blueScoutNetAlgae += correction['teleopNetAlgae'] + correction['autoNetAlgae']
+
+    for correction in red_corrections:
+        redScoutAutoCoralL1 += correction['autoCoralL1']
+        redScoutAutoCoralL2 += correction['autoCoralL2']
+        redScoutAutoCoralL3 += correction['autoCoralL3']
+        redScoutAutoCoralL4 += correction['autoCoralL4']
+        redScoutTeleopCoralL1 += correction['teleopCoralL1']
+        redScoutTeleopCoralL2 += correction['teleopCoralL2']
+        redScoutTeleopCoralL3 += correction['teleopCoralL3']
+        redScoutTeleopCoralL4 += correction['teleopCoralL4']
+        redScoutProcessorAlgae += correction['teleopProcessorAlgae']
+        redScoutNetAlgae += correction['teleopNetAlgae'] + correction['autoNetAlgae']
+   
     blueAccuracyAutoCoralL1 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L1') - blueScoutAutoCoralL1)
     blueAccuracyAutoCoralL2 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L2') - blueScoutAutoCoralL2)
     blueAccuracyAutoCoralL3 = abs(tbaWrapper.getAllianceReefForLevel(matchNum, 'blue', 'auto', 'L3') - blueScoutAutoCoralL3)
@@ -294,15 +297,21 @@ for matchNum in uniqueMatchNumbers:
         if int(scoutData['matchNum']) == matchNum:
             scoutIndex = scoutNames.index(scoutData['scoutName'])
             totalGamePieces = totalRedGamePieces if int(scoutData['teamNum']) in redAllianceTeamNums else totalBlueGamePieces
+            
+            correction = None
 
-            if (red_correction is None or int(scoutData['teamNum']) != int(red_correction['teamNum'])) and (blue_correction is None or int(scoutData['teamNum']) != int(blue_correction['teamNum'])):
+            for correctionData in red_corrections:
+                if int(correctionData['teamNum']) == int(scoutData['teamNum']):
+                    correction = correctionData
 
+            for correctionData in blue_corrections:
+                if int(correctionData['teamNum']) == int(scoutData['teamNum']):
+                    correction = correctionData
+
+            if not correction:
                 indexOffset = 1 if int(scoutData['teamNum']) in redAllianceTeamNums else 0
-
                 A[index+indexOffset, scoutIndex] = averageGamePiecesPerTeam[int(scoutData["teamNum"])] # Weighted by how many game pieces the robot typically scores, so more important robots are weighted more
-            elif (red_correction and int(scoutData['teamNum']) == int(red_correction['teamNum'])) or (blue_correction and int(scoutData['teamNum']) == int(blue_correction['teamNum'])):
-                correction = red_correction if int(scoutData['teamNum']) in redAllianceTeamNums else blue_correction
-
+            else: 
                 b[corrections_index] += abs(scoutData['autoCoralL1'] - correction['autoCoralL1']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
                 b[corrections_index] += abs(scoutData['autoCoralL2'] - correction['autoCoralL2']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
                 b[corrections_index] += abs(scoutData['autoCoralL3'] - correction['autoCoralL3']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
@@ -315,12 +324,8 @@ for matchNum in uniqueMatchNumbers:
                 b[corrections_index] += abs(scoutData['autoProcessorAlgae'] - correction['autoProcessorAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
                 b[corrections_index] += abs(scoutData['autoNetAlgae'] - correction['autoNetAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
                 b[corrections_index] += abs(scoutData['teleopNetAlgae'] - correction['teleopNetAlgae']) / totalGamePieces * averageGamePiecesPerTeam[int(scoutData["teamNum"])]
-
-
-                A[corrections_index, scoutIndex] = averageGamePiecesPerTeam[int(scoutData["teamNum"])]
+                A[corrections_index, scoutIndex] = averageGamePiecesPerTeam[int(scoutData["teamNum"])] # Weighted by how many game pieces the robot typically scores, so more important robots are weighted more
                 corrections_index += 1
-
-
 
 x, residuals = optimize.nnls(A, b) # nnls is the non-negative least squares algorithm
 #x, residuals, rank, singular_values = np.linalg.lstsq(A, b, rcond=None) # lstsq is the least squares algorithm, but it allows negative values
