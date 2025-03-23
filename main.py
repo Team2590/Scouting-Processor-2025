@@ -156,9 +156,9 @@ for matchNum in uniqueMatchNumbers:
     blue_corrections = {}
 
     for correction in correctionsDataRaw:
-        if int(correction['matchNum'] == matchNum) and int(correction['teamNum']) in redAllianceTeamNums:
+        if int(correction['matchNum']) == matchNum and int(correction['teamNum']) in redAllianceTeamNums:
             red_corrections[int(correction['teamNum'])] = correction
-        elif int(correction['matchNum'] == matchNum) and int(correction['teamNum']) in blueAllianceTeamNums:
+        elif int(correction['matchNum']) == matchNum and int(correction['teamNum']) in blueAllianceTeamNums:
             blue_corrections[int(correction['teamNum'])] = correction
 
     blueScoutAutoCoralL1 = 0
@@ -185,7 +185,7 @@ for matchNum in uniqueMatchNumbers:
         if int(scoutData['matchNum']) == matchNum:
             scoutIndex = scoutNames.index(scoutData['scoutName'])
             scoutGamePieceCounts[scoutData['scoutName']] += scoutData['autoCoralL1'] + scoutData['autoCoralL2'] + scoutData['autoCoralL3'] + scoutData['autoCoralL4'] + scoutData['teleopCoralL1'] + scoutData['teleopCoralL2'] + scoutData['teleopCoralL3'] + scoutData['teleopCoralL4'] + scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
-            if int(scoutData['teamNum']) in redAllianceTeamNums and (red_corrections[int(correction['teamNum'])] is None or int(scoutData['teamNum']) != int(red_corrections[int(correction['teamNum'])]['teamNum'])):
+            if int(scoutData['teamNum']) in redAllianceTeamNums and red_corrections[int(correction['teamNum'])] is None:
                 redScoutAutoCoralL1 += scoutData['autoCoralL1']
                 redScoutAutoCoralL2 += scoutData['autoCoralL2']
                 redScoutAutoCoralL3 += scoutData['autoCoralL3']
@@ -196,7 +196,7 @@ for matchNum in uniqueMatchNumbers:
                 redScoutTeleopCoralL4 += scoutData['teleopCoralL4']
                 redScoutProcessorAlgae += scoutData['teleopProcessorAlgae'] + scoutData['autoProcessorAlgae']
                 redScoutNetAlgae += scoutData['teleopNetAlgae'] + scoutData['autoNetAlgae']
-            elif int(scoutData['teamNum']) in blueAllianceTeamNums and (blue_corrections[int(correction['teamNum'])] is None or int(scoutData['teamNum']) != int(blue_corrections[int(correction['teamNum'])]['teamNum'])):
+            elif int(scoutData['teamNum']) in blueAllianceTeamNums and blue_corrections[int(correction['teamNum'])] is None:
                 blueScoutAutoCoralL1 += scoutData['autoCoralL1']
                 blueScoutAutoCoralL2 += scoutData['autoCoralL2']
                 blueScoutAutoCoralL3 += scoutData['autoCoralL3']
