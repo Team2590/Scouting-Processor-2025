@@ -362,8 +362,8 @@ for matchNum in uniqueMatchNumbers:
     for teamNum in redTeamNums + blueTeamNums:
         alliance = "red" if teamNum in redTeamNums else "blue"
 
-        inScoutingData = any(entry['matchNum'] == matchNum and entry['teamNum'] == teamNum for entry in scoutingDataRaw)        
-        inCorrectionsData = any(entry['matchNum'] == matchNum and entry['teamNum'] == teamNum for entry in correctionsDataRaw)
+        inScoutingData = any(int(entry['matchNum']) == matchNum and int(entry['teamNum']) == teamNum for entry in scoutingDataRaw)
+        inCorrectionsData = any(int(entry['matchNum']) == matchNum and int(entry['teamNum']) == teamNum for entry in correctionsDataRaw)
 
         if not (inScoutingData or inCorrectionsData):
             print(f"Missing data for Match {matchNum}, Team {teamNum} (Alliance: {alliance})")
