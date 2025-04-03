@@ -381,7 +381,8 @@ for i in range(worst):
     print('Match ' + str(matchNum) + " " + alliance + ' alliance has ' + str(sortedAllianceAccuracies[i]['missedGamePieces']) + ' missed game pieces')
     scoutingDataForMatch = list(filter(lambda d: d['matchNum'] == matchNum and d['teamNum'] in allianceTeamNums, scoutingDataRaw))
     names = []
-    for data in scoutingDataForMatch: names.append(data['scoutName'])  
+    for data in scoutingDataForMatch: names.append(data['scoutName'])
+    if len(names) == 0: continue
     filteredAccuracies = list(filter(lambda estimate: estimate['name'] in names, scouterAccuraciesEstimated))
 
     sortedAccuracies = sorted(filteredAccuracies, key=lambda estimate: estimate['accuracy'])
