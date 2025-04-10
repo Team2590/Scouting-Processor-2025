@@ -362,8 +362,8 @@ for matchNum in uniqueMatchNumbers:
     for teamNum in redTeamNums + blueTeamNums:
         alliance = "red" if teamNum in redTeamNums else "blue"
 
-        inScoutingData = any(entry['matchNum'] == matchNum and entry['teamNum'] == teamNum for entry in scoutingDataRaw)        
-        inCorrectionsData = any(entry['matchNum'] == matchNum and entry['teamNum'] == teamNum for entry in correctionsDataRaw)
+        inScoutingData = any(int(entry['matchNum']) == matchNum and int(entry['teamNum']) == teamNum for entry in scoutingDataRaw)
+        inCorrectionsData = any(int(entry['matchNum']) == matchNum and int(entry['teamNum']) == teamNum for entry in correctionsDataRaw)
 
         if not (inScoutingData or inCorrectionsData):
             print(f"Missing data for Match {matchNum}, Team {teamNum} (Alliance: {alliance})")
@@ -381,7 +381,8 @@ for i in range(worst):
     print('Match ' + str(matchNum) + " " + alliance + ' alliance has ' + str(sortedAllianceAccuracies[i]['missedGamePieces']) + ' missed game pieces')
     scoutingDataForMatch = list(filter(lambda d: d['matchNum'] == matchNum and d['teamNum'] in allianceTeamNums, scoutingDataRaw))
     names = []
-    for data in scoutingDataForMatch: names.append(data['scoutName'])  
+    for data in scoutingDataForMatch: names.append(data['scoutName'])
+    if len(names) == 0: continue
     filteredAccuracies = list(filter(lambda estimate: estimate['name'] in names, scouterAccuraciesEstimated))
 
     sortedAccuracies = sorted(filteredAccuracies, key=lambda estimate: estimate['accuracy'])
