@@ -33,14 +33,14 @@ class TbaWrapper:
 
         if period == 'teleop':
             if level == 'L1': return scoreBreakdown['teleopReef']['trough']
-            if level == 'L2': return sum(scoreBreakdown['teleopReef']['botRow'].values()) - sum(scoreBreakdown['autoReef']['botRow'].values())
-            if level == 'L3': return sum(scoreBreakdown['teleopReef']['midRow'].values()) - sum(scoreBreakdown['autoReef']['midRow'].values())
-            if level == 'L4': return sum(scoreBreakdown['teleopReef']['topRow'].values()) - sum(scoreBreakdown['autoReef']['topRow'].values())
+            if level == 'L2': return scoreBreakdown['teleopReef']['tba_botRowCount']
+            if level == 'L3': return scoreBreakdown['teleopReef']['tba_midRowCount']
+            if level == 'L4': return scoreBreakdown['teleopReef']['tba_topRowCount']
         else:
             if level == 'L1': return scoreBreakdown['autoReef']['trough']
-            if level == 'L2': return sum(scoreBreakdown['autoReef']['botRow'].values())
-            if level == 'L3': return sum(scoreBreakdown['autoReef']['midRow'].values())
-            if level == 'L4': return sum(scoreBreakdown['autoReef']['topRow'].values())
+            if level == 'L2': return scoreBreakdown['autoReef']['tba_botRowCount']
+            if level == 'L3': return scoreBreakdown['autoReef']['tba_midRowCount']
+            if level == 'L4': return scoreBreakdown['autoReef']['tba_topRowCount']
 
     def getAllianceProcessorAlgae(self, matchNum: int, alliance: Literal['blue', 'red']):
         return self.getAllianceScoreBreakdown(matchNum, alliance)['wallAlgaeCount']
