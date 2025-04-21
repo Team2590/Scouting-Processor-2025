@@ -5,12 +5,12 @@ def getScoutNames(data):
     return list(set(d['scoutName'] for d in data))
 
 def getLastMatchNum(data): 
-    return max(map(lambda d: d['matchNum'], data))
+    return max(map(lambda d: int(d['matchNum']), data))
 
 def scoutingDataTo2dArray(data, lastMatchNum):
     organized = [[] for _ in range(lastMatchNum)]
     for scoutData in data:
-        organized[scoutData['matchNum'] - 1].append(scoutData)
+        organized[int(scoutData['matchNum']) - 1].append(scoutData)
     return organized
 
 def correctZerosAlliance(number): 
